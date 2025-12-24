@@ -1,0 +1,59 @@
+{
+  "name": "@mapbox/mapbox-gl-language",
+  "version": "1.0.1",
+  "description": "Mapbox GL JS plugin for switching map language to the browser language.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "lint": "eslint index.js test/*.js",
+    "pretest": "npm run lint",
+    "test": "nyc tape test/*.test.js | tap-spec",
+    "docs": "documentation readme index.js --section API"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mapbox/mapbox-gl-language.git"
+  },
+  "keywords": [
+    "mapbox",
+    "gis",
+    "vector",
+    "leaflet",
+    "gl"
+  ],
+  "author": "Lukas Martinelli",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/mapbox/mapbox-gl-language/issues"
+  },
+  "homepage": "https://github.com/mapbox/mapbox-gl-language#readme",
+  "devDependencies": {
+    "documentation": "^14.0.0",
+    "eslint": "^8.24.0",
+    "eslint-config-mourner": "^3.0.0",
+    "nyc": "^15.1.0",
+    "tap-spec": "^5.0.0",
+    "tape": "^5.6.1"
+  },
+  "peerDependencies": {
+    "mapbox-gl": ">=0.29.0"
+  },
+  "eslintConfig": {
+    "ignorePatterns": [
+      "*.d.ts"
+    ],
+    "parserOptions": {
+      "sourceType": "module"
+    },
+    "env": {
+      "browser": true
+    },
+    "extends": "mourner",
+    "rules": {
+      "indent": [
+        2,
+        2
+      ]
+    }
+  }
+}

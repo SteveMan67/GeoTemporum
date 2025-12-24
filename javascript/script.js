@@ -3,7 +3,10 @@ var map = new maplibregl.Map({
   container: 'map',
   style: 'historical-style.JSON', // stylesheet location
   center: [-74.5, 40], // starting position [lng, lat]
-  zoom: 9 // starting zoom
+  zoom: 9, // starting zoom
+  attributionControl: {
+    customAttribution: '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
+  },
 });
 
 map.addControl(new maplibregl.NavigationControl());
@@ -47,10 +50,7 @@ let toggleableObjects = [
 // toggle event listeners
 
 for (const [id, layers, defaultChecked] of toggleableObjects) {
-  console.log(id, layers, defaultChecked) 
   const el = document.getElementById(id)
-  console.log(el)
-  console.log(getComputedStyle(el).color)
   const isOn = () => !el.classList.contains('greyed-out')
   console.log(isOn())
   // apply default on/off values 
@@ -107,8 +107,10 @@ function updateMapLayers() {
   }
 }
 
+
 //show everything but the whitelist on load 
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
 map.on("styledata", () => {
   updateMapLayers()
+  map.filterByDate("1997")
 });

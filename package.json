@@ -1,6 +1,9 @@
 {
   "dependencies": {
+    "@mapbox/mapbox-gl-language": "^1.0.1",
     "@mapbox/vector-tile": "^2.0.4",
+    "@openhistoricalmap/maplibre-gl-dates": "^1.3.0",
+    "mapbox-gl": "^3.17.0",
     "maplibre-gl": "^5.15.0",
     "node-fetch": "^2.7.0",
     "pbf": "^4.0.1"
