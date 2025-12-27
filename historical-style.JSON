@@ -13477,6 +13477,7 @@
       "minzoom": 0,
       "maxzoom": 24,
       "filter": ["==", ["to-number", ["get", "admin_level"]], 2],
+      "layout": { "visibility": "visible" },
       "paint": {
         "line-color": "#78787a",
         "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 6, 1.5, 10, 5]

@@ -212,7 +212,11 @@ slider.addEventListener('mouseup', () => {
 
 //show everything but the whitelist on load 
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
+let once = false;
 map.on("styledata", () => {
-  updateMapLayers()
-  map.filterByDate("2025")
+  if(!once) {
+    updateMapLayers()
+    map.filterByDate("2025")
+    once = true;
+  }
 });
