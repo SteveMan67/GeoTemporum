@@ -23,10 +23,11 @@ let whitelist = [
   "city_labels_town_z8",
   "city_labels_z11",
   "city_labels_z6",
-  "boundaries_admin_34",
-  "boundaries_admin_12",
+  // "boundaries_admin_34",
+  // "boundaries_admin_12",
   "country_points_labels_cen",
-  "country_points_labels"
+  "country_points_labels",
+  "country-boundaries"
 ];
 
 // set --val so that I can have the background to the right of the slider a different color
@@ -47,8 +48,7 @@ setFill()
 let toggleableObjects = [
   ["land", ["land"], true],
   ["background", ["background"], true],
-  ["borders", ["boundaries_admin_34",
-  "boundaries_admin_12",], true],
+  ["borders", ["country-boundaries"], true],
   ["labels", ["city_locality_labels_other_z11",
   "city_labels_other_z11",
   "city_labels_town_z8",
@@ -113,11 +113,26 @@ function updateMapLayers() {
       map.setLayoutProperty(layer.id, "visibility", "none");
     } else {
       map.setLayoutProperty(layer.id, "visibility", "visible")
+      console.log(layer.id)
     }
     layers.push(layer.id);
   }
 }
 
+function isValidDate(year, era) {
+  const CurrentYear = new Date().GetFullyear()
+  if(year <= 0){
+    return false;
+  }
+  if(era == 'AD' && year > CurrentYear) {
+    return false
+  }
+  if(era == 'BC' && year > 3000) {
+    return false
+  } else {
+    return true
+  }
+}
 // date range event listeners
 const minDateSelection = document.getElementById('min-date-selection')
 const maxDateSelection = document.getElementById('max-date-selection')
@@ -199,5 +214,5 @@ slider.addEventListener('mouseup', () => {
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
 map.on("styledata", () => {
   updateMapLayers()
-  map.filterByDate("-201")
+  map.filterByDate("2025")
 });

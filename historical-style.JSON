@@ -13470,6 +13470,19 @@
       }
     },
     {
+      "id": "country-boundaries",
+      "type": "line",
+      "source": "ohm_admin",
+      "source-layer": "boundaries",
+      "minzoom": 0,
+      "maxzoom": 24,
+      "filter": ["==", ["to-number", ["get", "admin_level"]], 2],
+      "paint": {
+        "line-color": "#78787a",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 6, 1.5, 10, 5]
+      }
+    },
+    {
       "id": "country_points_labels_cen",
       "type": "symbol",
       "source": "osm",
