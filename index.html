@@ -10,7 +10,6 @@
         <script>
             window.mapboxgl = window.maplibregl; 
         </script>
-        <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-language/v1.0.0/mapbox-gl-language.js'></script>
         <link rel="stylesheet" href="styles/style.css"/>
         <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,17 +44,23 @@
         <script src="javascript/script.js" defer></script>
         <div id="slider-box">
             <div id="min-date-container">
-                <div id="min-date-selection" class="invisible">
+                <!-- <div id="min-date-selection" class="invisible">
                     <input type="number" id="min-date-input"></input>
                     <select name="era" id="min-era-select">
                         <option value="BC">BC</option>
                         <option value="AD">AD</option>
                     </select>
-                </div>
+                </div> -->
                 <div id="min-date-box">
-                    
+                    <div id="min-date-selection" class="invisible">
+                        <input type="number" id="min-date-input"></input>
+                        <select name="era" id="min-era-select">
+                            <option value="BC">BC</option>
+                            <option value="AD">AD</option>
+                        </select>
+                        <div id="selection-box"></div>
+                    </div>
                     <p id="min-date">67</p><p id="min-era">BC</p>
-                    
                 </div>
             </div>
             <div id="slider-container">
@@ -64,14 +69,22 @@
             </div>
 
             <div id="max-date-container">
-                <div id="max-date-selection" class="invisible">
+                <!-- <div id="max-date-selection" class="invisible">
                     <input type="number" id="max-date-input"></input>
                     <select name="era" id="max-era-select">
                         <option value="BC">BC</option>
                         <option value="AD">AD</option>
                     </select>
-                </div>
+                </div> -->
                 <div id="max-date-box">
+                    <div id="max-date-selection" class="invisible">
+                        <input type="number" id="max-date-input"></input>
+                        <select name="era" id="max-era-select">
+                            <option value="BC">BC</option>
+                            <option value="AD">AD</option>
+                        </select>
+                        <div id="selection-box"></div>
+                    </div>
                     <p id="max-date">67<p id="max-era">AD</p></p>
                 </div>
             </div>

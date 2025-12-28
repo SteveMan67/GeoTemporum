@@ -180,6 +180,8 @@ const minDateDisplay = document.getElementById('min-date')
 const maxDateDisplay = document.getElementById('max-date')
 const minEraDisplay = document.getElementById('min-era')
 const maxEraDisplay = document.getElementById('max-era')
+// const minDisplay = document.getElementById()
+// const maxDisplay = document.getElementById()
 const minEraInput = document.getElementById('min-era-select')
 const maxEraInput = document.getElementById('max-era-select')
 const minDateInput = document.getElementById('min-date-input')
@@ -192,16 +194,24 @@ const maxDate = document.getElementById('max-date-container')
 
 minDate.addEventListener('mouseenter', () => {
   minDateSelection.classList.remove('invisible')
+  minDateDisplay.classList.add('invisible')
+  minEraDisplay.classList.add('invisible')
 })
 minDate.addEventListener('mouseleave', () => {
   minDateSelection.classList.add('invisible')
+  minDateDisplay.classList.remove('invisible')
+  minEraDisplay.classList.remove('invisible')
   
 })
 maxDate.addEventListener('mouseenter', () => {
   maxDateSelection.classList.remove('invisible')
+  maxDateDisplay.classList.add('invisible')
+  maxEraDisplay.classList.add('invisible')
 })
 maxDate.addEventListener('mouseleave', () => {
   maxDateSelection.classList.add('invisible')
+  maxDateDisplay.classList.remove('invisible')
+  maxEraDisplay.classList.remove('invisible')
 })
 
 minDateInput.addEventListener('input', () => {
