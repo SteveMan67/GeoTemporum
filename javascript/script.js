@@ -13,6 +13,7 @@ map.addControl(new maplibregl.NavigationControl(), 'top-left');
 map.addControl(new maplibregl.GlobeControl, 'top-left')
 map.addControl(new maplibregl.FullscreenControl, 'top-left')
 
+
 function setLanguage(lang) {
   const style = map.getStyle();
   if (!style || !style.layers) return; // guard if style not ready
@@ -231,6 +232,15 @@ optionsContainer.addEventListener("click", (e) => {
 
   // add a function to update the map when the user clicks a toggle to show/hide something
 applyWhitelist = true;
+function toggleWhitelist() {
+  if (applyWhitelist) {
+    applyWhitelist = false
+  } else {
+    applyWhitelist = true
+  }
+  updateMapLayers()
+}
+
 function updateMapLayers() {
   const style = map.getStyle();
   let layers = [];
