@@ -64,11 +64,11 @@ setFill()
 // used to loop through and add event listeners automatically
 // list consists of lists of lists OH NO
 // where the structure of each list inside the list is
-// ["elementID", ["layers", "that", "it", "toggles", "off"], default-checked-boolean]
+// ["elementID", ["layers", "that", "it", "toggles", "off"], default-checked-boolean, "Pretty Name"]
 let toggleableObjects = [
-  ["land", ["ohm_landcover_hillshade", "landuse_areas_earth"], true],
-  ["background", ["background"], true],
-  ["borders", ["country-boundaries"], true],
+  ["land", ["ohm_landcover_hillshade", "landuse_areas_earth"], true, "Land Cover"],
+  ["background", ["background"], true, "Background"],
+  ["borders", ["country-boundaries"], true, "Borders"],
   ["labels", 
     ["city_locality_labels_other_z11",
     "city_labels_other_z11",
@@ -83,7 +83,7 @@ let toggleableObjects = [
     "county_labels_z11",
     "other_countries",
     "placearea_label"], 
-    true],
+    true, "Labels"],
   ["rivers", 
     ["water_lines_stream_no_name",
     "water_lines_stream_name",
@@ -97,13 +97,18 @@ let toggleableObjects = [
     "water_areas_labels_z12",
     "water_areas_labels_z8",
     "water_lines_river"], 
-    false]
+    false, "Rivers"]
 ];
 
 // toggle event listeners
+const list = document.getElementById("filters")
+const optionsContainer = document.getElementById("options-container")
+const layerSelection = document.getElementById("layer-selection")
 
-for (const [id, layers, defaultChecked] of toggleableObjects) {
+for (const [id, layers, defaultChecked, name] of toggleableObjects) {
   const el = document.getElementById(id)
+  console.log(el)
+  console.log(id)
   // apply default on/off values 
   el.classList.add('greyed-out')
   if (defaultChecked) {
@@ -142,10 +147,54 @@ for (const [id, layers, defaultChecked] of toggleableObjects) {
     }
     updateMapLayers()
   })
+  // Add to the bigger list
+  const li = document.createElement('li')
+  li.textContent = name
+  list.appendChild(li)
+  li.classList.add('greyed-out')
+  if (defaultChecked) {
+    li.classList.remove('greyed-out')
+  } 
+  li.addEventListener("click", () => {
+    if (li.classList.contains('greyed-out')) {
+      for (const i of layers) {
+        if (!whitelist.includes(i)) {
+          whitelist.push(i)
+        }
+      }
+      li.classList.toggle('greyed-out')
+    } else {
+      for (const i of layers) {
+        if (whitelist.includes(i)) {
+          whitelist = whitelist.filter(f => f !== i)
+        }
+      }
+      li.classList.toggle('greyed-out')
+    }
+    updateMapLayers()
+  })
 }
 
+filterButtons = [document.getElementById("filter-img"), document.getElementById("more-filters")]
+
+for (el of filterButtons) {
+  el.addEventListener("click", () => {
+    optionsContainer.classList.remove("invisible")
+    layerSelection.classList.remove("invisible")
+  })
+}
+const closeButton = document.getElementById("close-button")
+closeButton.addEventListener("click", () => {
+  optionsContainer.classList.add("invisible")
+  layerSelection.classList.add("invisible")
+})
+optionsContainer.addEventListener("click", () => {
+  optionsContainer.classList.add("invisible")
+  layerSelection.classList.add("invisible")
+})
+
   // add a function to update the map when the user clicks a toggle to show/hide something
-applyWhitelist =true;
+applyWhitelist = true;
 function updateMapLayers() {
   const style = map.getStyle();
   let layers = [];

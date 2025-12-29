@@ -22,13 +22,13 @@
                 <h1>MapThingy</h1>
             </div>
             <div id="export" class="nav-item">
-                <img src="images/icons/save.png">
+                <img id="save-img" src="images/icons/save.png">
                 <h3>Save</h3>
                 <h3>Save As</h3>
                 <h3>Load</h3>
             </div>
             <div id="filter" class="nav-item">
-                <img src="images/icons/filter.png">
+                <img id="filter-img" src="images/icons/filter.png">
                 <div id="scroll">
                     <h3 id="labels">Labels</h3>
                     <h3 id="borders">Boundaries</h3>
@@ -36,7 +36,7 @@
                     <h3 id="background">Background</h3>
                     <h3 id="rivers">Rivers</h3>
                 </div>
-                <h3>More...</h3>
+                <h3 id="more-filters">More...</h3>
 
             </div>
         </nav>
@@ -87,6 +87,18 @@
                     </div>
                     <p id="max-date">2025<p id="max-era">AD</p></p>
                 </div>
+            </div>
+        </div>
+        <div id="options-container" class="invisible">
+            <div id="layer-selection" class="invisible">
+                <div id="top">
+                    <h2>Filters</h2>
+                    <img id="close-button" src="images/icons/close.png">
+                </div>
+                <hr>
+                <ol id="filters">
+
+                </ol>
             </div>
         </div>
     </body>
