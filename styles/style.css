@@ -292,7 +292,7 @@ nav {
     overflow-y: scroll;
     justify-self: center;
     align-self: center;
-    z-index: 20000000;
+    z-index: 20000001;
     border-radius: 50px;
     scrollbar-width: none;
 }
@@ -308,6 +308,19 @@ nav {
     height: 20px;
     cursor: pointer;
 }
+
+
+#filters {
+    padding-left: 50px;
+}
+#layer-selection li {
+    list-style-type: none;
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
 #layer-selection hr {
     border: 1px solid rgb(0 0 0 / 50%);
     margin: 0 50px;

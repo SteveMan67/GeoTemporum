@@ -2,12 +2,15 @@
 var map = new maplibregl.Map({
   container: 'map',
   style: 'historical-style.JSON', // stylesheet location
-  center: [-74.5, 40], // starting position [lng, lat]
-  zoom: 9, // starting zoom
+  center: [-95, 40], // starting position [lng, lat]
+  zoom: 3, // starting zoom
   attributionControl: {
     customAttribution: '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
   },
+  preserveDrawingBuffer: true,
 });
+map.addControl(new maplibregl.NavigationControl());
+map.addControl(new maplibregl.GlobeControl)
 
 function setLanguage(lang) {
   const style = map.getStyle();
@@ -32,23 +35,56 @@ function setLanguage(lang) {
   }
 }
 
-map.addControl(new maplibregl.NavigationControl());
 
-let whitelist = [
-  "ohm_admin_boundaries",
-  "ohm_landcover_hillshade",
-  "background",
-  "land",
-  "state_lines_admin_4",
-  "city_locality_labels_other_z11",
-  "city_labels_other_z11",
-  "city_labels_town_z8",
-  "city_labels_z11",
-  "city_labels_z6",
-  "country_points_labels_cen",
-  "country_points_labels",
-  "country-boundaries"
-];
+async function downloadAsPng(width = 3840, height = 2160, filename = 'MapThingy-download.png') {
+  const container = map.getContainer()
+  const originalWidth = container.clientWidth;
+  const originalHeight = container.clientHeight;
+  const originalZoom = map.getZoom()
+  const { lng: originalLng, lat: originalLat } = map.getCenter()
+  const originalBearing = map.getBearing()
+  const originalPitch = map.getPitch()
+  const originalBounds = map.getBounds()
+
+  container.style.width = `${width}px`
+  container.style.height = `${height}px`
+  map.jumpTo({center: [originalLng, originalLat], zoom: originalZoom})
+
+  map.resize()
+  map.fitBounds(originalBounds, {padding: 0, duration: 0, bearing: originalBearing, pitch: originalPitch})
+
+  await new Promise(resolve => map.once('idle', resolve))
+
+  // export that thang!
+  map.getCanvas().toBlob((blob) => {
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename;
+    a.click()
+    URL.revokeObjectURL(url)
+
+    container.style.width = `100%`
+    container.style.height = `100%`
+    map.resize()
+    map.jumpTo({ center: [originalLng, originalLat], zoom: originalZoom, bearing: originalBearing, pitch: originalPitch })
+  }, 'image/png')
+}
+
+
+
+const saveButtons = [document.getElementById('save-img'), document.getElementById('save-button')]
+
+for (el of saveButtons) {
+  el.addEventListener('click', () => {
+    downloadAsPng()
+  })
+}
+
+
+
+let whitelist = [];
 
 // set --val so that I can have the background to the right of the slider a different color
 const slider = document.getElementById("slider")
@@ -66,9 +102,9 @@ setFill()
 // where the structure of each list inside the list is
 // ["elementID", ["layers", "that", "it", "toggles", "off"], default-checked-boolean, "Pretty Name"]
 let toggleableObjects = [
-  ["land", ["ohm_landcover_hillshade", "landuse_areas_earth"], true, "Land Cover"],
-  ["background", ["background"], true, "Background"],
-  ["borders", ["country-boundaries"], true, "Borders"],
+  ["land", ["ohm_landcover_hillshade", "landuse_areas_earth", "land"], true, "Land Cover"],
+  ["background", ["water_areas", "background"], true, "Background"],
+  ["borders", ["country_boundaries", "state_lines_admin_4",], true, "Borders"],
   ["labels", 
     ["city_locality_labels_other_z11",
     "city_labels_other_z11",
@@ -107,8 +143,6 @@ const layerSelection = document.getElementById("layer-selection")
 
 for (const [id, layers, defaultChecked, name] of toggleableObjects) {
   const el = document.getElementById(id)
-  console.log(el)
-  console.log(id)
   // apply default on/off values 
   el.classList.add('greyed-out')
   if (defaultChecked) {
@@ -188,7 +222,8 @@ closeButton.addEventListener("click", () => {
   optionsContainer.classList.add("invisible")
   layerSelection.classList.add("invisible")
 })
-optionsContainer.addEventListener("click", () => {
+optionsContainer.addEventListener("click", (e) => {
+  if (layerSelection.contains(e.target)) return;
   optionsContainer.classList.add("invisible")
   layerSelection.classList.add("invisible")
 })
@@ -278,7 +313,7 @@ minDateInput.addEventListener('input', () => {
     slider.min = 0
     minDateDisplay.innerHTML = 0
     lastValidmin = 0 
-  } else if (minEraDisplay.innerHTML == 'BC' && isValidDate(minDateInput.value, minEraDisplay)) {
+  } else if (minEraInput.innerHTML == 'BC' && isValidDate(minDateInput.value, minEraDisplay)) {
     slider.min = (date * -1)
   } else if (!isValidDate(date, minEraDisplay)) {
     minDateInput.value = lastValidMin
@@ -291,7 +326,7 @@ minDateInput.addEventListener('input', () => {
 });
 minEraInput.addEventListener('input', () => {
   minEraDisplay.innerHTML = minEraInput.value
-  if (minEraInput.innerHTML == 'BC') {
+  if (minEraInput.value == 'BC') {
     slider.min = (minDateInput.value * -1)
   } else {
     slider.min = minDateInput.value
@@ -304,7 +339,7 @@ maxDateInput.addEventListener('input', () => {
   if (date == "") {
     date = 0;
   }
-  if (maxEraDisplay.innerHTML == 'BC' && isValidDate(maxDateInput, maxEraDisplay)) {
+  if (maxEraInput.value == 'BC' && isValidDate(maxDateInput, maxEraDisplay)) {
     slider.max = (maxDateInput.value * -1)
   } else if(!isValidDate(maxDateInput, maxEraDisplay)) {
     maxDateInput.value = lastValidMin
@@ -317,7 +352,7 @@ maxDateInput.addEventListener('input', () => {
 });
 maxEraInput.addEventListener('input', () => {
   maxEraDisplay.innerHTML = maxEraInput.value
-  if (maxEraInput.innerHTML == 'BC') {
+  if (maxEraInput.value == 'BC') {
     slider.max = (maxDateInput.value * -1)
   } else {
     slider.max = maxDateInput.value

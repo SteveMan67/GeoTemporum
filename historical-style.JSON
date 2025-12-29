@@ -10231,7 +10231,7 @@
             "zoom"
           ],
           6,
-          "rgba(168, 193, 183, 1)"
+          "#B1B4B7"
         ],
         "line-width": [
           "interpolate",
@@ -10242,13 +10242,13 @@
             "zoom"
           ],
           2,
-          0.4,
-          6,
-          0.75,
+          0.5,
+          3,
+          1,
           12,
-          2,
+          1,
           15,
-          3
+          1
         ]
       }
     },
@@ -13323,7 +13323,7 @@
       }
     },
     {
-      "id": "country-boundaries",
+      "id": "country_boundaries",
       "type": "line",
       "source": "ohm_admin",
       "source-layer": "boundaries",
@@ -13332,8 +13332,8 @@
       "filter": ["==", ["to-number", ["get", "admin_level"]], 2],
       "layout": { "visibility": "visible" },
       "paint": {
-        "line-color": "#78787a",
-        "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 6, 1.5, 10, 5, 14, 10]
+        "line-color": "#828282",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 0, 0.6, 3, 1.5, 6, 1.5, 14, 3]
       }
     },
     {
