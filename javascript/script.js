@@ -9,8 +9,9 @@ var map = new maplibregl.Map({
   },
   preserveDrawingBuffer: true,
 });
-map.addControl(new maplibregl.NavigationControl());
-map.addControl(new maplibregl.GlobeControl)
+map.addControl(new maplibregl.NavigationControl(), 'top-left');
+map.addControl(new maplibregl.GlobeControl, 'top-left')
+map.addControl(new maplibregl.FullscreenControl, 'top-left')
 
 function setLanguage(lang) {
   const style = map.getStyle();
