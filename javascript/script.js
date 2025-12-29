@@ -80,6 +80,8 @@ let toggleableObjects = [
     "county_labels_z11_admin_7-8_centroids",
     "county_labels_z11_admin_6_centroids",
     "water_point_labels_ocean_sea",
+    "county_labels_z11",
+    "other_countries",
     "placearea_label"], 
     true],
   ["rivers", 
@@ -143,7 +145,7 @@ for (const [id, layers, defaultChecked] of toggleableObjects) {
 }
 
   // add a function to update the map when the user clicks a toggle to show/hide something
-applyWhitelist = true;
+applyWhitelist =true;
 function updateMapLayers() {
   const style = map.getStyle();
   let layers = [];
@@ -227,7 +229,6 @@ minDateInput.addEventListener('input', () => {
     slider.min = 0
     minDateDisplay.innerHTML = 0
     lastValidmin = 0 
-    print(date)
   } else if (minEraDisplay.innerHTML == 'BC' && isValidDate(minDateInput.value, minEraDisplay)) {
     slider.min = (date * -1)
   } else if (!isValidDate(date, minEraDisplay)) {
