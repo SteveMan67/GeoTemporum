@@ -556,14 +556,27 @@ slider.addEventListener("mouseenter", () => {
   dateDisplay.classList.remove("invisible")
   updateDateDisplay()
 })
+slider.addEventListener("touchstart", () => {
+  dateDisplay.classList.remove("invisible");
+  updateDateDisplay();
+});
+
 slider.addEventListener("mouseleave", () => {
+  dateDisplay.classList.add("invisible")
+  updateDateDisplay()
+})
+slider.addEventListener("touchend", () => {
+  dateDisplay.classList.add("invisible")
+  updateDateDisplay()
+})
+slider.addEventListener("touchcancel", () => {
   dateDisplay.classList.add("invisible")
   updateDateDisplay()
 })
 updateDateDisplay()
 
 // event listener to update the map date based on the slider
-slider.addEventListener('input', () => {
+slider.addEventListener('change', () => {
   updateDate();
 });
 
