@@ -12,10 +12,10 @@ var map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl(), 'top-left');
 map.addControl(new maplibregl.GlobeControl, 'top-left')
 
-let isPhone = false
-if(window.innerWidth < 800) {
-  isPhone = true
-}
+let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
+window.addEventListener('resize', () => {
+  let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
+})
 
 function setLanguage(lang) {
   const style = map.getStyle();
@@ -591,6 +591,115 @@ map.on('click', (e) => {
   const features = map.queryRenderedFeatures(e.point);
   console.log(features.map(f => f.properties));
 });
+
+// right click functionality
+let rightClickMenuOpen = false
+const menu = document.getElementById('right-click')
+let rightClickList = document.getElementById('right-click-list')
+
+function addToRightClick(text) {
+  let li = document.createElement('li')
+  li.textContent = text
+  rightClickList.appendChild(li)
+}
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault()
+})
+
+function addMarker(text = "haha", lng, lat) {
+  const el = document.createElement('div')
+  el.innerHTML = `<p id="marker">${text}</p>`
+  let marker = new maplibregl.Marker({
+    element: el,
+    draggable: false
+  }).setLngLat([lng, lat]).addTo(map)
+}
+
+function removeGeneratedItems() {
+  rightClickList.innerHTML = ''
+  let li = document.createElement('li')
+  li.textContent = 'Add Marker'
+  li.id = 'add-marker'
+  rightClickList.appendChild(li)
+}
+
+function closeMenu(target = null) {
+  if (menu.contains(target)) return;
+  console.log("closed")
+  rightClickMenuOpen = false
+  menu.classList.add('invisible')
+  removeGeneratedItems()
+}
+
+map.on('contextmenu', (e) => {
+  // move the box to the mouse and display it
+  rightClickMenuOpen = true
+  e.preventDefault()
+  menu.classList.remove('invisible')
+  menu.style.display = 'block';
+  menu.style.left = e.originalEvent.clientX + 'px'
+  menu.style.top = e.originalEvent.clientY + 'px'
+
+  // add marker functionality
+  const {lng: lng, lat: lat} = e.lngLat.wrap()
+  addMarkerEventListener(lng, lat)
+
+
+  // fetch features for that point 
+  let features = map.queryRenderedFeatures(e.point);
+  features = features.map(f => f.properties)
+  // add them to the list
+  if (features.length > 1) {
+    let hr = document.createElement('hr')
+    rightClickList.appendChild(hr)
+    const includedProperties = ["name_en", "end_date", "start_date"]
+    for (property in features[0]) {
+      if(features[0].hasOwnProperty(property)) {
+        if (includedProperties.includes(property)) {
+          addToRightClick(property + ": " + features[0][property])
+        }
+      }
+    }
+  }
+  
+})
+
+function addMarkerEventListener(lng, lat) {
+  const addMarkerButton = document.getElementById('add-marker')
+  addMarkerButton.addEventListener('mousedown', (e) => {
+    e.stopPropagation;
+  })
+  addMarkerButton.addEventListener('click', () => {
+    let textSelect = document.createElement('input')
+    textSelect.type = "text"
+    rightClickList.appendChild(textSelect)
+    addMarkerButton.remove()
+    textSelect.focus()
+    textSelect.addEventListener('focusout', function() {
+      if (textSelect.value) {
+        addMarker(textSelect.value, lng, lat);
+      } else {
+        addMarker("Marker", lng, lat);
+      }
+    });
+    textSelect.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (textSelect.value) {
+          addMarker(textSelect.value, lng, lat)
+        } else {
+          addMarker("Marker", lng, lat)
+        }
+        closeMenu()
+      }
+    })
+  })
+}
+
+
+
+document.addEventListener('mousedown', (e) => {
+  closeMenu(e.target)
+})
 
 //show everything but the whitelist on load 
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS

@@ -425,6 +425,33 @@ nav {
 
 }
 
+/* right click */
+#right-click {
+    position: fixed;
+    top: 500px;
+    left: 500px;
+    min-width: 150px;
+    min-height: 20px;
+    background-color: white;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.438);
+    border-radius: 20px;
+}
+#right-click ol {
+    padding: 10px;
+    margin: 5px 0;
+}
+#right-click li {
+    list-style-type: none;
+    white-space: nowrap;
+    font-size: 15px;
+    cursor: pointer;
+}
+#marker {
+    color:#495049; 
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.75); 
+    font-size: 15px; 
+    font-weight: bold;
+}
 /* phone styles */
 #rotate-phone {
     display: none;
@@ -447,7 +474,7 @@ nav {
     
 }
 
-@media (orientation: landscape) and (max-height: 600px) and (hover: none) {
+@media (orientation: landscape) and (max-height: 800px) and (hover: none) {
     /* nav bar */
     #logo, #export, #filter {
         margin: 10px 10px 0 10px;
