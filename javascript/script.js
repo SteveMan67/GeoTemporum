@@ -12,6 +12,33 @@ var map = new maplibregl.Map({
 map.addControl(new maplibregl.NavigationControl(), 'top-left');
 map.addControl(new maplibregl.GlobeControl, 'top-left')
 
+//show everything but the whitelist on load 
+// CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
+// only run this once (I know it's jank, it works) otherwise it gets triggered on map.filterByDate()
+let once = false;
+map.on("styledata", () => {
+  if(!once) {
+    updateMapLayers()
+    map.filterByDate(slider.value)
+    // const language = new MapboxLanguage();
+    // map.addControl(language)
+    setLanguage('en')
+    once = true;
+    map.addSource('custom-markers', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: []
+      }
+    });
+  }
+})
+
+
+map.on('load', () => {
+  setLanguage('en')
+})
+
 let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
 window.addEventListener('resize', () => {
   let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
@@ -589,7 +616,7 @@ slider.addEventListener('change', () => {
 // smth for debug
 map.on('click', (e) => {
   const features = map.queryRenderedFeatures(e.point);
-  console.log(features.map(f => f.properties));
+  console.log(features.map(f => f.id), features.map(f => f.properties));
 });
 
 // right click functionality
@@ -606,6 +633,8 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault()
 })
 
+let markers = []
+
 function addMarker(text = "haha", lng, lat) {
   const el = document.createElement('div')
   el.innerHTML = `<p id="marker">${text}</p>`
@@ -613,6 +642,7 @@ function addMarker(text = "haha", lng, lat) {
     element: el,
     draggable: false
   }).setLngLat([lng, lat]).addTo(map)
+  markers.push(marker)
 }
 
 function removeGeneratedItems() {
@@ -631,6 +661,113 @@ function closeMenu(target = null) {
   removeGeneratedItems()
 }
 
+function getWikidataId(id) {
+  url = "https://corsproxy.io/?key=4ffc06b1&url=https://overpass-api.openhistoricalmap.org/api/interpreter"
+  query = `
+  [out:json];
+  (
+  node(${id});
+  way(${id});
+  relation(${id});
+  );
+  out tags;
+  `;
+  return fetch(url, {
+    method: "POST",
+    body: query,
+    headers: { "Content-Type": "text/plain"}
+  })
+    .then(response => response.json())
+    .then(data => {
+      const tags = data['elements'][0]['tags']
+      console.log("Wikidata:", tags.wikidata)
+      console.log("Wikipedia:", tags.wikipedia)
+      return [tags.wikidata, tags.wikipedia]
+    })
+}
+
+function fetchWikidata(id) {
+  const url = `https://corsproxy.io/?key=4ffc06b1&url=https://www.wikidata.org/wiki/special:EntityData/${id}.json`
+
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      console.log(data)
+    })
+}
+
+function fetchPopulation(id) {
+  const url = "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql"
+  const query = `
+  SELECT ?population ?populationYear WHERE {
+  VALUES ?item { wd:${id} }
+  ?item p:P1082 ?populationStatement.
+  ?populationStatement ps:P1082 ?population. 
+  OPTIONAL { ?populationStatement pq:P585 ?populationYear. }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language "en". }
+}
+ORDER BY DESC(?populationYear)`
+
+  return fetch(url, {
+    method: "POST",
+    headers: { "Accept": "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: "query=" + encodeURIComponent(query)
+  })
+    .then(response => response.json())
+    .then(data => {
+      populationsList = data["results"]["bindings"]
+      populations = []
+      for (item of populationsList) {
+        let isoString = new Date(item.populationYear.value)
+        populations.push([item.population.value, isoString.getFullYear()])
+      }
+      return populations;
+    })
+}
+
+async function fetchPopulationForYear(id, year) {
+  const populations = await fetchPopulation(id)
+  console.log(populations)
+  let closestYear = 300099998; 
+  let closestPopulation = null;
+  for ([population, date] of populations) {
+    if (Math.abs(date - year) < Math.abs(date - closestYear)) {
+      closestYear = date;
+      closestPopulation = population
+    }
+  } 
+  console.log(closestYear, closestPopulation)
+  return [closestYear, closestPopulation]
+}
+
+function fetchStartEndYear(id) {
+  const url = "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql"
+  const query = `
+  SELECT ?population ?populationYear WHERE {
+  VALUES ?item { wd:${id} }
+  ?item p:P1082 ?populationStatement.
+  ?populationStatement ps:P1082 ?population. 
+  OPTIONAL { ?populationStatement pq:P585 ?populationYear. }
+  SERVICE wikibase:label {bd:serviceParam wikibase:language "en". }
+}
+ORDER BY DESC(?populationYear)`
+
+  fetch(url, {
+    method: "POST",
+    headers: { "Accept": "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: "query=" + encodeURIComponent(query)
+  })
+    .then(response => response.json())
+    .then(data => {
+      populationsList = data["results"]["bindings"]
+      populations = []
+      for (item of populationsList) {
+        populations.push([item.population.value, item.populationYear.value])
+      }
+      console.log(populations)
+    })
+}
+
 map.on('contextmenu', (e) => {
   // move the box to the mouse and display it
   rightClickMenuOpen = true
@@ -647,16 +784,18 @@ map.on('contextmenu', (e) => {
 
   // fetch features for that point 
   let features = map.queryRenderedFeatures(e.point);
-  features = features.map(f => f.properties)
+  let id = features.map(f => f.id)[0]
+  wikiDataId = getWikidataId(id)
+  properties = features.map(f => f.properties)
   // add them to the list
-  if (features.length > 1) {
+  if (properties.length > 1) {
     let hr = document.createElement('hr')
     rightClickList.appendChild(hr)
     const includedProperties = ["name_en", "end_date", "start_date"]
-    for (property in features[0]) {
-      if(features[0].hasOwnProperty(property)) {
+    for (property in properties[0]) {
+      if(properties[0].hasOwnProperty(property)) {
         if (includedProperties.includes(property)) {
-          addToRightClick(property + ": " + features[0][property])
+          addToRightClick(property + ": " + properties[0][property])
         }
       }
     }
@@ -701,21 +840,3 @@ document.addEventListener('mousedown', (e) => {
   closeMenu(e.target)
 })
 
-//show everything but the whitelist on load 
-// CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
-// only run this once (I know it's jank, it works) otherwise it gets triggered on map.filterByDate()
-let once = false;
-map.on("styledata", () => {
-  if(!once) {
-    updateMapLayers()
-    map.filterByDate(slider.value)
-    // const language = new MapboxLanguage();
-    // map.addControl(language)
-    setLanguage('en')
-    once = true;
-  }
-});
-
-map.on('load', () => {
-  setLanguage('en')
-})
