@@ -35,7 +35,11 @@ map.on("styledata", () => {
       id: 'custom-markers-layer',
       type: 'symbol',
       source: 'custom-markers',
+      visibility: "visible",
       layout: {
+        'icon-allow-overlap': true,
+        'text-allow-overlap': true,
+        'symbol-z-order': 'auto',
         'text-line-height': 1, 
         'text-size': [
           'interpolate',
@@ -103,7 +107,6 @@ map.on("styledata", () => {
     })
   }
 })
-
 
 map.on('load', () => {
   setLanguage('en')
@@ -720,13 +723,14 @@ function addToRightClickTop(text) {
 let markers = []
 
 function addMarker(text = "haha", lng, lat) {
-  const el = document.createElement('div')
-  el.innerHTML = `<p id="marker">${text}</p>`
-  let marker = new maplibregl.Marker({
-    element: el,
-    draggable: false
-  }).setLngLat([lng, lat]).addTo(map)
-  markers.push(marker)
+  const source = map.getSource('custom-markers')
+  const data = source._data
+  data.features.push({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+    properties: { "name:en": text, name: text }
+  })
+  source.setData(data)
 }
 
 function removeGeneratedItems() {
@@ -898,6 +902,32 @@ map.on('contextmenu', (e) => {
         addToRightClick("Wikipedia " + wikipedia, true, wikipediaTagToUrl(wikipedia))
       }
     }
+
+    // delete user created markers functionality
+    console.log(features)
+    for (layer of features) {
+      if (layer.source == "custom-markers") {
+        
+
+        let deleteButton = document.createElement('li')
+        deleteButton.textContent = "Delete Marker"
+        rightClickList.appendChild(deleteButton)
+        deleteButton.addEventListener('click', () => {
+          const source = map.getSource('custom-markers')
+          const data = source._data
+          const index = data.features.findIndex(f => 
+            f.geometry.type === "Point" && 
+            f.geometry.coordinates[0] === layer.geometry.coordinates[0] &&
+            f.geometry.coordinates[1] === layer.geometry.coordinates[1]
+          )
+          if (index != 1) {
+            data.features.splice(index, 1)
+            source.setData(data)
+          }
+        })
+        console.log("you clicked on your marker!")
+      }
+    }
   })();  
 })
 
@@ -906,25 +936,16 @@ function addMarkerEventListener(lng, lat) {
   addMarkerButton.addEventListener('mousedown', (e) => {
     e.stopPropagation;
   })
-  addMarkerButton.addEventListener('click', () => {
+  addMarkerButton.addEventListener('click', function handler() {
     let textSelect = document.createElement('input')
     textSelect.type = "text"
     rightClickList.insertBefore(textSelect, rightClickList.firstChild) 
     addMarkerButton.remove()
     textSelect.focus()
-    textSelect.addEventListener('focusout', function() {
-      if (textSelect.value) {
-        addMarker(textSelect.value, lng, lat);
-      } else {
-        addMarker("Marker", lng, lat);
-      }
-    });
     textSelect.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (textSelect.value) {
           addMarker(textSelect.value, lng, lat)
-        } else {
-          addMarker("Marker", lng, lat)
         }
         closeMenu()
       }
