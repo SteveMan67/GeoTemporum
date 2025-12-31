@@ -31,6 +31,76 @@ map.on("styledata", () => {
         features: []
       }
     });
+    map.addLayer({
+      id: 'custom-markers-layer',
+      type: 'symbol',
+      source: 'custom-markers',
+      layout: {
+        'text-line-height': 1, 
+        'text-size': [
+          'interpolate',
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          8,
+          3,
+          12,
+          6,
+          20,
+          10,
+          22
+        ],
+        'symbol-avoid-edges': false,
+        "text-font": [
+          'OpenHistorical Bold'
+        ],
+        "symbol-placement": "point",
+        "text-justify": "center",
+        "visibility": "visible",
+        "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
+        "text-max-width": 7
+      },
+      paint: {
+        "text-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          "#495049",
+          5,
+          "#6d786d"
+        ],
+        "text-halo-width": 1.5,
+        "text-halo-color": [
+          "interpolate",
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
+          0,
+          "rgba(252, 255, 254, 0.75)",
+          3,
+          "rgba(240, 244, 216, 1)",
+          5,
+          "rgba(246,247,227, 1)",
+          7,
+          "rgba(255, 255, 255, 1)"
+        ],
+        "text-halo-blur": 1,
+        "text-opacity": 1,
+        "text-translate-anchor": "map"
+      }
+    })
   }
 })
 
@@ -624,14 +694,28 @@ let rightClickMenuOpen = false
 const menu = document.getElementById('right-click')
 let rightClickList = document.getElementById('right-click-list')
 
-function addToRightClick(text) {
+function addToRightClick(text, isLink = false, link) {
   let li = document.createElement('li')
   li.textContent = text
+  if(link) {
+    li.textContent = ''
+    li.innerHTML = `<a href ="${link}" target="_blank">${text}</a>`
+  }
   rightClickList.appendChild(li)
 }
 document.addEventListener('contextmenu', (e) => {
   e.preventDefault()
 })
+
+function addToRightClickTop(text) {
+  let li = document.createElement('li') 
+  li.textContent = text
+  if (rightClickList.firstChild) {
+    rightClickList.insertBefore(li, rightClickList.firstChild)
+  } else {
+    rightClickList.appendChild(li)
+  }
+}
 
 let markers = []
 
@@ -655,7 +739,6 @@ function removeGeneratedItems() {
 
 function closeMenu(target = null) {
   if (menu.contains(target)) return;
-  console.log("closed")
   rightClickMenuOpen = false
   menu.classList.add('invisible')
   removeGeneratedItems()
@@ -679,21 +762,21 @@ function getWikidataId(id) {
   })
     .then(response => response.json())
     .then(data => {
-      const tags = data['elements'][0]['tags']
-      console.log("Wikidata:", tags.wikidata)
-      console.log("Wikipedia:", tags.wikipedia)
-      return [tags.wikidata, tags.wikipedia]
+      if (data['elements'][0]) {
+        console.log(data['elements'][0])
+        const tags = data['elements'][0]['tags']   
+        let wikidata = tags.wikidata
+        let wikipedia = tags.wikipedia     
+        return [wikidata, wikipedia]
+      }
     })
 }
 
-function fetchWikidata(id) {
-  const url = `https://corsproxy.io/?key=4ffc06b1&url=https://www.wikidata.org/wiki/special:EntityData/${id}.json`
-
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-    })
+function wikipediaTagToUrl(wikipediaTag) {
+  if (!wikipediaTag || !wikipediaTag.includes(':')) return null;
+  const [lang, ...titleParts] = wikipediaTag.split(':');
+  const title = titleParts.join(':').replace(/ /g, '_');
+  return `https://${lang}.wikipedia.org/wiki/${title}`;
 }
 
 function fetchPopulation(id) {
@@ -759,6 +842,7 @@ ORDER BY DESC(?populationYear)`
   })
     .then(response => response.json())
     .then(data => {
+      console.log(data)
       populationsList = data["results"]["bindings"]
       populations = []
       for (item of populationsList) {
@@ -784,23 +868,37 @@ map.on('contextmenu', (e) => {
 
   // fetch features for that point 
   let features = map.queryRenderedFeatures(e.point);
-  let id = features.map(f => f.id)[0]
-  wikiDataId = getWikidataId(id)
-  properties = features.map(f => f.properties)
-  // add them to the list
-  if (properties.length > 1) {
-    let hr = document.createElement('hr')
-    rightClickList.appendChild(hr)
-    const includedProperties = ["name_en", "end_date", "start_date"]
-    for (property in properties[0]) {
-      if(properties[0].hasOwnProperty(property)) {
-        if (includedProperties.includes(property)) {
-          addToRightClick(property + ": " + properties[0][property])
+  
+  (async () => {
+    console.log(features)
+    let id = features.map(f => f.id)[0]
+    let properties = features.map(f => f.properties)
+    let source = features.map(f => f.source)
+    let wikidata, wikipedia;
+    if(id && source != "osm_land") {
+        [wikidata, wikipedia] = await getWikidataId(id)
+        console.log(wikidata, wikipedia)
+    }
+    // add them to the list
+    if (properties.length > 0 && source != "osm_land") {
+      let hr = document.createElement('hr')
+      rightClickList.appendChild(hr)
+      const includedProperties = ["name_en"]
+      for (property in properties[0]) {
+        if(properties[0].hasOwnProperty(property)) {
+          if (includedProperties.includes(property)) {
+            addToRightClick(properties[0][property])
+          }
         }
       }
+      if(wikidata) {
+        addToRightClick("Wikidata", true, `https://www.wikidata.org/wiki/${wikidata}`)
+      }
+      if(wikipedia) {
+        addToRightClick("Wikipedia " + wikipedia, true, wikipediaTagToUrl(wikipedia))
+      }
     }
-  }
-  
+  })();  
 })
 
 function addMarkerEventListener(lng, lat) {
@@ -811,7 +909,7 @@ function addMarkerEventListener(lng, lat) {
   addMarkerButton.addEventListener('click', () => {
     let textSelect = document.createElement('input')
     textSelect.type = "text"
-    rightClickList.appendChild(textSelect)
+    rightClickList.insertBefore(textSelect, rightClickList.firstChild) 
     addMarkerButton.remove()
     textSelect.focus()
     textSelect.addEventListener('focusout', function() {
@@ -838,5 +936,9 @@ function addMarkerEventListener(lng, lat) {
 
 document.addEventListener('mousedown', (e) => {
   closeMenu(e.target)
+})
+
+map.on('zoom', (e) => {
+  closeMenu()
 })
 
