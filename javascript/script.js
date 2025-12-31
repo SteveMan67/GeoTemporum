@@ -861,8 +861,11 @@ ORDER BY DESC(?populationYear)`
 function deleteFeature(featureId, layer) {
   const source = map.getSource(layer)
   const data = source._data
-  const i = data.features.findIndex(f => f.id = featureId)
-
+  console.log("source data:")
+  console.log(data)
+  const i = data.features.findIndex(f => f.id == featureId)
+  console.log(`received id ${featureId} and found index ${i}`)
+  console.log(i)
   if (i != -1) {
     data.features.splice(i, 1)
     source.setData(data)
@@ -887,12 +890,11 @@ map.on('contextmenu', (e) => {
   let features = map.queryRenderedFeatures(e.point);
   
   (async () => {
-    console.log(features)
     let id = features.map(f => f.id)[0]
+    console.log(`feature id: ${id}`)
     let properties = features.map(f => f.properties)
     let source = features.map(f => f.source)
     let wikidata, wikipedia;
-    console.log(source[0])
     if(id && source[0] != "osm_land" && source[0] != "custom-markers") {
         [wikidata, wikipedia] = await getWikidataId(id)
         console.log(wikidata, wikipedia)
@@ -918,16 +920,17 @@ map.on('contextmenu', (e) => {
     }
 
     // delete user created markers functionality
-    console.log(features)
     for (layer of features) {
       if (layer.source == "custom-markers") {
         let deleteButton = document.createElement('li')
         deleteButton.textContent = "Delete Marker"
         rightClickList.appendChild(deleteButton)
         deleteButton.addEventListener('click', () => {
-          deleteFeature(layer.id, "custom-markers")
+          let features = map.queryRenderedFeatures(e.point)
+          const id = features.map(f => f.id)
+          console.log(`deleting element with id ${id[0]}`)
+          deleteFeature(id[0], "custom-markers")
         })
-        console.log("you clicked on your marker!")
       }
     }
   })();  
