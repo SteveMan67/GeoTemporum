@@ -362,9 +362,14 @@ for (const [id, layers, defaultChecked, name] of toggleableObjects) {
   })
 }
 
-
 filterButtons = [document.getElementById("filter-img"), document.getElementById("more-filters")]
 let clickOnBackgroundToClose = false
+
+function closeAllOpenMenus() {
+  optionsContainer.classList.add("invisible")
+  layerSelection.classList.add("invisible")
+  saveAsScreen.classList.add("invisible")
+}
 
 // filter page
 for (el of filterButtons) {
@@ -382,9 +387,8 @@ filterCloseButton.addEventListener("click", () => {
 })
 optionsContainer.addEventListener("click", (e) => {
   if (layerSelection.contains(e.target) || saveAsScreen.contains(e.target) ||!clickOnBackgroundToClose) return;
-  optionsContainer.classList.add("invisible")
-  layerSelection.classList.add("invisible")
-  filterSelection.classList.add("invisible")
+  clickOnBackgroundToClose = false
+  closeAllOpenMenus()
 })
 
 
@@ -535,6 +539,8 @@ function swapDarkModeImages(isDarkMode) {
   const minusImg = document.getElementById('zoom-out-img')
   const globeImg = document.getElementById('globe-img')
   const layerImg = document.getElementById('layers-img')
+  const filterCloseButton = document.getElementById('filter-close-button')
+  const saveAsCloseButton = document.getElementById('save-as-close-button')
 
   if (isDarkMode) {
     saveImg.src = "/images/icons/save-dark.png"
@@ -544,6 +550,8 @@ function swapDarkModeImages(isDarkMode) {
     minusImg.src = "/images/icons/minus-dark.svg"
     globeImg.src = "/images/icons/globe-dark.svg"
     layerImg.src = "/images/icons/layers-dark.svg"
+    filterCloseButton.src = "/images/icons/close-dark.svg"
+    saveAsCloseButton.src = "/images/icons/close-dark.svg"
   } else {
     saveImg.src = "/images/icons/save.png"
     filterImg.src = "/images/icons/filter.png"
@@ -552,6 +560,8 @@ function swapDarkModeImages(isDarkMode) {
     minusImg.src = "/images/icons/minus.svg"
     globeImg.src = "/images/icons/globe.svg"
     layerImg.src = "/images/icons/layers.svg"
+    filterCloseButton.src = "/images/icons/close.svg"
+    saveAsCloseButton.src = "/images/icons/close.svg"
   }
 }
 
