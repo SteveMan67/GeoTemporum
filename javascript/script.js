@@ -12,6 +12,8 @@ var map = new maplibregl.Map({
 
 let isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 let colorStyle = "Light"
+let layers = [];
+let appliedLayers = []
 
 //show everything but the whitelist on load 
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
@@ -21,6 +23,7 @@ map.on("styledata", () => {
   if(!once) {
     map.setProjection({type: 'mercator'})
     updateMapLayers()
+    addFilters()
     colorStyle = isDarkMode ? "Dark" : "Light"
     swapDarkModeImages(isDarkMode)
     map.filterByDate(slider.value)
@@ -280,6 +283,7 @@ let filterList = [
   {
     id: "labels",
     quickMenu: false,
+    isDefaultOn: true,
     toggledLayers: [
       "city_locality_labels_other_z11",
       "city_labels_other_z11",
@@ -307,7 +311,8 @@ let filterList = [
         toggledLayers: [
           "city_labels_z6"
         ],
-        prettyName: "Major-Cities"
+        prettyName: "Major-Cities",
+        quickMenu: true
       },
       {
         id: "minor-cities",
@@ -317,14 +322,18 @@ let filterList = [
           "city_labels_town_z8",
           "city_labels_z11",
         ],
-        prettyName: "Minor Cities"
+        prettyName: "Minor Cities",
+        quickMenu: true,
       },
       {
         id: "state-labels",
         toggledLayers: [
           "state_points_labels_centroids",
           "state_points_labels"
-        ]
+        ],
+        prettyName: "State Labels",
+        quickMenu: true
+
       },
       {
         id: "custom-markers",
@@ -337,6 +346,8 @@ let filterList = [
   {
     id: "rivers",
     quickMenu: false,
+    isDefaultOn: true,
+    prettyName: "Rivers",
     toggledLayers: [
       "water_lines_stream_no_name",
       "water_lines_stream_name",
@@ -388,78 +399,78 @@ let toggleableObjects = [
     "county_labels_z11",
     "water_areas_labels_z12",
     "water_areas_labels_z8",
+
+
     "water_lines_river"], 
     false, "Rivers"]
 ];
 
-// toggle event listeners
-
-for (const [id, layers, defaultChecked, name] of toggleableObjects) {
-  const el = document.getElementById(id)
-  // apply default on/off values 
-  el.classList.add('greyed-out')
-  if (defaultChecked) {
-    el.classList.toggle('greyed-out')
-  }
-  if(defaultChecked) {
-    for (const i of layers) {
+function toggleLayers(on, layerList) {
+  if(on) {
+    for (i of layerList) {
       if (!whitelist.includes(i)) {
         whitelist.push(i)
-      }
-    } 
+      } 
+    }
   } else {
-    for (const i of layers) {
+    for (i of layerList) {
       if (whitelist.includes(i)) {
         whitelist = whitelist.filter(f => f !== i)
       }
     }
   }
+  updateMapLayers()
+}
 
-  // EVENT LISTENER!!! [scheming silently]
-  el.addEventListener("click", () => {
-    if (el.classList.contains('greyed-out')) {
-      for (const i of layers) {
-        if (!whitelist.includes(i)) {
-          whitelist.push(i)
-        }
+const toggleQuickMenu = document.getElementById("scroll")
+
+
+// toggle event listeners
+function addFilters() {
+  for (filter of filterList) {
+    if (filter.quickMenu) {
+      toggleLayers(filter.isDefaultOn, filter.toggledLayers)
+      h3 = document.createElement('h3')
+      h3.textContent = filter.prettyName
+      h3.id = filter.id
+      if (!filter.isDefaultOn) {
+        h3.classList.add("greyed-out")
       }
-      el.classList.toggle('greyed-out')
+      toggleQuickMenu.appendChild(h3)
+      h3.addEventListener('click', () => {
+        let indexOfFilter = filterList.findIndex(f => f.id == h3.id)
+        if (h3.classList.contains("greyed-out")) {
+          h3.classList.remove("greyed-out")
+          console.log(filterList[indexOfFilter].toggledLayers)
+          toggleLayers(true, filterList[indexOfFilter].toggledLayers)
+        } else {
+          h3.classList.add("greyed-out")
+          console.log(filterList[indexOfFilter].toggledLayers)
+          toggleLayers(false, filterList[indexOfFilter].toggledLayers)
+        }
+      })
     } else {
-      for (const i of layers) {
-        if (whitelist.includes(i)) {
-          whitelist = whitelist.filter(f => f !== i)
-        }
-      }
-      el.classList.toggle('greyed-out')
+      toggleLayers(filter.isDefaultOn, filter.toggledLayers)
     }
-    updateMapLayers()
-  })
-  // Add to the bigger list
-  const li = document.createElement('li')
-  li.textContent = name
-  list.appendChild(li)
-  li.classList.add('greyed-out')
-  if (defaultChecked) {
-    li.classList.remove('greyed-out')
-  } 
-  li.addEventListener("click", () => {
-    if (li.classList.contains('greyed-out')) {
-      for (const i of layers) {
-        if (!whitelist.includes(i)) {
-          whitelist.push(i)
-        }
-      }
-      li.classList.toggle('greyed-out')
-    } else {
-      for (const i of layers) {
-        if (whitelist.includes(i)) {
-          whitelist = whitelist.filter(f => f !== i)
-        }
-      }
-      li.classList.toggle('greyed-out')
+    // add to filter list
+    let li = document.createElement('li')
+    li.textContent = filter.prettyName
+    li.id = filter.id
+    if (!filter.isDefaultOn) {
+      li.classList.add("greyed-out")
     }
-    updateMapLayers()
-  })
+    list.appendChild(li)
+    li.addEventListener('click', () => {
+      const i = filterList.findIndex(f => f.id == li.id)
+      if (li.classList.contains("greyed-out")) {
+        li.classList.remove("greyed-out")
+        toggleLayers(true, filterList[i].toggledLayers)
+      } else {
+        li.classList.add("greyed-out")
+        toggleLayers(false, filterList[i].toggledLayers)
+      }
+    })
+  }
 }
 
 filterButtons = [document.getElementById("filter-img"), document.getElementById("more-filters")]
@@ -562,8 +573,7 @@ function toggleWhitelist() {
 }
 
 // add a function to update the map when the user clicks a toggle to show/hide something
-let layers = [];
-let appliedLayers = []
+
 function updateMapLayers() {
   const style = map.getStyle();
   layers = []
@@ -646,25 +656,25 @@ function swapDarkModeImages(isDarkMode) {
   const saveAsCloseButton = document.getElementById('save-as-close-button')
 
   if (isDarkMode) {
-    saveImg.src = "/images/icons/save-dark.png"
-    filterImg.src = "/images/icons/filter-dark.png"
-    logoImg.src = "/images/icons/logo-dark.png"
-    plusImg.src = "/images/icons/plus-dark.svg"
-    minusImg.src = "/images/icons/minus-dark.svg"
-    globeImg.src = "/images/icons/globe-dark.svg"
-    layerImg.src = "/images/icons/layers-dark.svg"
-    filterCloseButton.src = "/images/icons/close-dark.svg"
-    saveAsCloseButton.src = "/images/icons/close-dark.svg"
+    saveImg.src = "./images/icons/save-dark.png"
+    filterImg.src = "./images/icons/filter-dark.png"
+    logoImg.src = "./images/icons/logo-dark.png"
+    plusImg.src = "./images/icons/plus-dark.svg"
+    minusImg.src = "./images/icons/minus-dark.svg"
+    globeImg.src = "./images/icons/globe-dark.svg"
+    layerImg.src = "./images/icons/layers-dark.svg"
+    filterCloseButton.src = "./images/icons/close-dark.svg"
+    saveAsCloseButton.src = "./images/icons/close-dark.svg"
   } else {
-    saveImg.src = "/images/icons/save.png"
-    filterImg.src = "/images/icons/filter.png"
-    logoImg.src = "/images/icons/logo.png"
-    plusImg.src = "/images/icons/plus.svg"
-    minusImg.src = "/images/icons/minus.svg"
-    globeImg.src = "/images/icons/globe.svg"
-    layerImg.src = "/images/icons/layers.svg"
-    filterCloseButton.src = "/images/icons/close.svg"
-    saveAsCloseButton.src = "/images/icons/close.svg"
+    saveImg.src = "./images/icons/save.png"
+    filterImg.src = "./images/icons/filter.png"
+    logoImg.src = "./images/icons/logo.png"
+    plusImg.src = "./images/icons/plus.svg"
+    minusImg.src = "./images/icons/minus.svg"
+    globeImg.src = "./images/icons/globe.svg"
+    layerImg.src = "./images/icons/layers.svg"
+    filterCloseButton.src = "./images/icons/close.svg"
+    saveAsCloseButton.src = "./images/icons/close.svg"
   }
 }
 
