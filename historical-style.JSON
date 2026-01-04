@@ -10280,7 +10280,7 @@
       ],
       "layout": { "visibility": "visible" },
       "paint": {
-        "fill-color": "#ff0000",
+        "fill-color": "#4421AE",
         "fill-opacity": [
           "case", 
           ["boolean", ["feature-state", "hover"], false],
@@ -13387,7 +13387,7 @@
       "filter": ["==", ["to-number", ["get", "admin_level"]], 2],
       "layout": { "visibility": "visible" },
       "paint": {
-        "fill-color": "#ff0000",
+        "fill-color": "#4421AE",
         "fill-opacity": [
           "case", 
           ["boolean", ["feature-state", "hover"], false],

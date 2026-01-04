@@ -97,6 +97,10 @@ html, body {
     width: 15px;
     height: 15px;
 }
+#query-img {
+    width: 20px !important;
+    height: 20px !important;
+}
 
 /* slider styles */
 #slider-container {

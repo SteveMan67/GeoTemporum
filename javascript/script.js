@@ -443,7 +443,7 @@ map.on("mouseleave", "country_boundaries_fill", (e) => {
       {hover: false}
     )
   }
-  hoveredCountryId == null
+  hoveredCountryId = null
 })
 
 
@@ -467,11 +467,11 @@ map.on('mousemove', 'states_fill', (e) => {
 map.on("mouseleave", "states_fill", (e) => {
   if (hoveredStateId != null) {
     map.setFeatureState(
-      {source: "osm", sourceLayer: "land_ohm_lines", id: hoveredStateId},
+      {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
       {hover: false}
     )
   }
-  hoveredStateId
+  hoveredStateId = null;
 })
 
 
@@ -491,8 +491,8 @@ function toggleHoverStates(visible) {
   }
 }
 
-map.on("wheel", (e) => {
-  if (hover) {
+function applyHovers(visible) {
+  if (visible) {
     if (map.getZoom() >=  4) {
       toggleHoverCountries(false)
       toggleHoverStates(true)
@@ -500,7 +500,14 @@ map.on("wheel", (e) => {
       toggleHoverCountries(true)
       toggleHoverStates(false)
     }
+  } else {
+    toggleHoverCountries(false)
+    toggleHoverStates(false)
   }
+}
+
+map.on("wheel", (e) => {
+  applyHovers(hover)
 })
 
 const toggleQuickMenu = document.getElementById("scroll")
@@ -758,12 +765,12 @@ function swapDarkModeImages(isDarkMode) {
       filename: "minus"
     },
     {
-      id: "globe-img",
-      filename: "globe"
+      id: "query-img",
+      filename: "query"
     },
     {
-      id: "layers-img",
-      filename: "layers"
+      id: "globe-img",
+      filename: "globe"
     },
     {
       id: "filter-close-button",
@@ -863,7 +870,9 @@ function isValidDate(year, era) {
 const zoomIn = document.getElementById('zoom-in')
 const zoomOut = document.getElementById('zoom-out')
 const globeControl = document.getElementById('globe')
-const layersControl = document.getElementById('layers-control')
+const queryControl = document.getElementById('query-control')
+const queryImg = document.getElementById("query-img")
+let queryClicked = false
 
 zoomIn.addEventListener('mousedown', (e) => {
   e.preventDefault()
@@ -880,11 +889,24 @@ zoomOut.addEventListener('click', () => {
 globeControl.addEventListener('mousedown', (e) => {
   e.preventDefault
 })
-layersControl.addEventListener('mousedown', (e) => {
+queryControl.addEventListener('mousedown', (e) => {
   e.preventDefault
 })
-layersControl.addEventListener('click', () => {
-  // show layer selection menu, right now only light and dark mode
+queryControl.addEventListener('click', () => {
+  if (!queryClicked) {
+    queryClicked = true
+    applyHovers(true)
+    queryImg.src = "./images/icons/query-selected.svg"
+
+    // set a custom cursor 
+    map.getCanvas().style.cursor = "url('./images/icons/query-dark.svg'), auto"
+  } else {
+    queryClicked = false
+    applyHovers(false)
+    swapDarkModeImages(isDarkMode)
+
+    map.getCanvas().style.cursor = ""
+  }
 })
 
 globeControl.addEventListener('click', () => {
