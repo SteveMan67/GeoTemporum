@@ -1,58 +1,61 @@
 // initialize map
 var map = new maplibregl.Map({
-  container: "map",
-  style: "historical-style.JSON", // stylesheet location
+  container: 'map',
+  style: 'historical-style.JSON', // stylesheet location
   center: [-95, 40], // starting position [lng, lat]
   zoom: 3, // starting zoom
   attributionControl: {
-    customAttribution:
-      '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
+    customAttribution: '<a href="https://www.openhistoricalmap.org/">OpenHistoricalMap</a>',
   },
-  preserveDrawingBuffer: true,
+  preserveDrawingBuffer: true
 });
 
-let isDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
-let colorStyle = "Light";
+let isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+let colorStyle = "Light"
 let layers = [];
-let appliedLayers = [];
+let appliedLayers = []
 
-//show everything but the whitelist on load
+//show everything but the whitelist on load 
 // CURRENTLY TAKES A WHILE TO WORK AFTER MAP LOADS
 // only run this once (I know it's jank, it works) otherwise it gets triggered on map.filterByDate()
 let once = false;
 map.on("styledata", () => {
-  if (!once) {
-    map.setProjection({ type: "mercator" });
-    updateMapLayers();
-    addFilters();
-    colorStyle = isDarkMode ? "Dark" : "Light";
-    swapDarkModeImages(isDarkMode);
-    map.filterByDate(slider.value);
+  if(!once) {
+    map.setProjection({type: 'mercator'})
+    updateMapLayers()
+    addFilters()
+    colorStyle = isDarkMode ? "Dark" : "Light"
+    swapDarkModeImages(isDarkMode)
+    map.filterByDate(slider.value)
     // const language = new MapboxLanguage();
     // map.addControl(language)
-    setLanguage("en");
+    setLanguage('en')
     once = true;
-    map.addSource("custom-markers", {
-      type: "geojson",
+    map.addSource('custom-markers', {
+      type: 'geojson',
       data: {
-        type: "FeatureCollection",
-        features: [],
-      },
+        type: 'FeatureCollection',
+        features: []
+      }
     });
     map.addLayer({
-      id: "custom-markers-layer",
-      type: "symbol",
-      source: "custom-markers",
+      id: 'custom-markers-layer',
+      type: 'symbol',
+      source: 'custom-markers',
       visibility: "visible",
       layout: {
-        "icon-allow-overlap": true,
-        "text-allow-overlap": true,
-        "symbol-z-order": "auto",
-        "text-line-height": 1,
-        "text-size": [
-          "interpolate",
-          ["linear"],
-          ["zoom"],
+        'icon-allow-overlap': true,
+        'text-allow-overlap': true,
+        'symbol-z-order': 'auto',
+        'text-line-height': 1, 
+        'text-size': [
+          'interpolate',
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
           0,
           8,
           3,
@@ -60,31 +63,41 @@ map.on("styledata", () => {
           6,
           20,
           10,
-          22,
+          22
         ],
-        "symbol-avoid-edges": false,
-        "text-font": ["OpenHistorical Bold"],
+        'symbol-avoid-edges': false,
+        "text-font": [
+          'OpenHistorical Bold'
+        ],
         "symbol-placement": "point",
         "text-justify": "center",
-        visibility: "visible",
+        "visibility": "visible",
         "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
-        "text-max-width": 7,
+        "text-max-width": 7
       },
       paint: {
         "text-color": [
           "interpolate",
-          ["linear"],
-          ["zoom"],
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
           0,
           "#495049",
           5,
-          "#6d786d",
+          "#6d786d"
         ],
         "text-halo-width": 1.5,
         "text-halo-color": [
           "interpolate",
-          ["linear"],
-          ["zoom"],
+          [
+            "linear"
+          ],
+          [
+            "zoom"
+          ],
           0,
           "rgba(252, 255, 254, 0.75)",
           3,
@@ -92,41 +105,41 @@ map.on("styledata", () => {
           5,
           "rgba(246,247,227, 1)",
           7,
-          "rgba(255, 255, 255, 1)",
+          "rgba(255, 255, 255, 1)"
         ],
         "text-halo-blur": 1,
         "text-opacity": 1,
-        "text-translate-anchor": "map",
-      },
-    });
-    updateColors();
-    applyHovers(false);
+        "text-translate-anchor": "map"
+      }
+    })
+    updateColors()
+    applyHovers(false)
   }
-});
+})
 
-map.on("load", () => {
-  setLanguage("en");
-});
+map.on('load', () => {
+  setLanguage('en')
+})
 
-let isPhone = window.innerWidth <= 600 && "ontouchstart" in window;
-window.addEventListener("resize", () => {
-  let isPhone = window.innerWidth <= 600 && "ontouchstart" in window;
-});
+let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
+window.addEventListener('resize', () => {
+  let isPhone = window.innerWidth <= 600 && 'ontouchstart' in window;
+})
 
 function setLanguage(lang) {
   const style = map.getStyle();
   if (!style || !style.layers) return; // guard if style not ready
-
+  
   for (const layer of style.layers) {
     // check if it's a symbol layer with text-field
-    if (layer.type === "symbol") {
+    if (layer.type === 'symbol') {
       try {
-        const textField = map.getLayoutProperty(layer.id, "text-field");
+        const textField = map.getLayoutProperty(layer.id, 'text-field');
         if (textField) {
-          map.setLayoutProperty(layer.id, "text-field", [
-            "coalesce",
-            ["get", `name_${lang}`],
-            ["get", "name"],
+          map.setLayoutProperty(layer.id, 'text-field', [
+            'coalesce',
+            ['get', `name_${lang}`],
+            ['get', 'name']
           ]);
         }
       } catch (e) {
@@ -136,75 +149,62 @@ function setLanguage(lang) {
   }
 }
 
-const list = document.getElementById("filters");
-const optionsContainer = document.getElementById("options-container");
-const layerSelection = document.getElementById("layer-selection");
-const loadingScreen = document.getElementById("loading-screen");
-const loadingText = document.getElementById("load-text");
-const saveAsScreen = document.getElementById("save-img-select");
+const list = document.getElementById("filters")
+const optionsContainer = document.getElementById("options-container")
+const layerSelection = document.getElementById("layer-selection")
+const loadingScreen = document.getElementById('loading-screen')
+const loadingText = document.getElementById('load-text')
+const saveAsScreen = document.getElementById('save-img-select')
 
-async function downloadAsPng(
-  width = 3840,
-  height = 2160,
-  filename = "MapThingy-download.png",
-) {
-  optionsContainer.classList.remove("invisible");
-  loadingScreen.classList.remove("invisible");
-  const container = map.getContainer();
-  const originalZoom = map.getZoom();
-  const { lng: originalLng, lat: originalLat } = map.getCenter();
-  const originalBearing = map.getBearing();
-  const originalPitch = map.getPitch();
-  const originalBounds = map.getBounds();
+async function downloadAsPng(width = 3840, height = 2160, filename = 'MapThingy-download.png') {
+  optionsContainer.classList.remove('invisible')
+  loadingScreen.classList.remove('invisible')
+  const container = map.getContainer()
+  const originalZoom = map.getZoom()
+  const { lng: originalLng, lat: originalLat } = map.getCenter()
+  const originalBearing = map.getBearing()
+  const originalPitch = map.getPitch()
+  const originalBounds = map.getBounds()
 
-  container.style.width = `${width}px`;
-  container.style.height = `${height}px`;
-  map.jumpTo({ center: [originalLng, originalLat], zoom: originalZoom });
+  container.style.width = `${width}px`
+  container.style.height = `${height}px`
+  map.jumpTo({center: [originalLng, originalLat], zoom: originalZoom})
 
-  map.resize();
-  map.fitBounds(originalBounds, {
-    padding: 0,
-    duration: 0,
-    bearing: originalBearing,
-    pitch: originalPitch,
-  });
+  map.resize()
+  map.fitBounds(originalBounds, {padding: 0, duration: 0, bearing: originalBearing, pitch: originalPitch})
 
-  await new Promise((resolve) => map.once("idle", resolve));
+  await new Promise(resolve => map.once('idle', resolve))
 
   // export that thang!
   map.getCanvas().toBlob((blob) => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
     a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.click()
+    URL.revokeObjectURL(url)
 
-    container.style.width = `100%`;
-    container.style.height = `100%`;
-    map.resize();
-    map.jumpTo({
-      center: [originalLng, originalLat],
-      zoom: originalZoom,
-      bearing: originalBearing,
-      pitch: originalPitch,
-    });
-  }, "image/png");
-  optionsContainer.classList.add("invisible");
-  loadingScreen.classList.add("invisible");
+    container.style.width = `100%`
+    container.style.height = `100%`
+    map.resize()
+    map.jumpTo({ center: [originalLng, originalLat], zoom: originalZoom, bearing: originalBearing, pitch: originalPitch })
+  }, 'image/png')
+  optionsContainer.classList.add('invisible')
+  loadingScreen.classList.add('invisible')
 }
 
-const saveButtons = [
-  document.getElementById("save-img"),
-  document.getElementById("save-button"),
-];
+
+
+const saveButtons = [document.getElementById('save-img'), document.getElementById('save-button')]
 
 for (el of saveButtons) {
-  el.addEventListener("click", () => {
-    downloadAsPng(1920, 1080);
-  });
+  el.addEventListener('click', () => {
+    downloadAsPng(1920, 1080)
+  })
 }
+
+
 
 let whitelist = [
   "custom-markers-layer",
@@ -212,19 +212,19 @@ let whitelist = [
   "landuse_areas_earth",
   "water_areas",
   "background",
-  "land",
+  "land"
 ];
 
 // set --val so that I can have the background to the right of the slider a different color
-const slider = document.getElementById("slider");
+const slider = document.getElementById("slider")
 const setFill = () => {
-  const min = Number(slider.min);
-  const max = Number(slider.max);
-  const val = ((slider.value - min) / (max - min)) * 100;
-  slider.style.setProperty("--val", `${val}%`);
-};
-slider.addEventListener("input", setFill);
-setFill();
+    const min = Number(slider.min)
+    const max = Number(slider.max)
+    const val = ((slider.value - min) / (max - min)) * 100;
+    slider.style.setProperty('--val', `${val}%`); 
+}
+slider.addEventListener('input', setFill);
+setFill()
 
 let customColors = [
   {
@@ -239,7 +239,7 @@ let customColors = [
       country_boundaries: "#828282",
       state_lines_admin_4: "#A8C1B7",
     },
-    useLandCover: true,
+    useLandCover: true
   },
   {
     name: "Dark",
@@ -252,11 +252,11 @@ let customColors = [
       water_areas: "#315F8B",
       water_lines_river: "#315F8B",
       country_boundaries: "#fff",
-      state_lines_admin_4: "#31353A",
+      state_lines_admin_4: "#31353A"
     },
-    useLandCover: false,
-  },
-];
+    useLandCover: false
+  }
+]
 // used to loop through and add event listeners automatically
 // list consists of lists of lists OH NO
 // where the structure of each list inside the list is
@@ -265,16 +265,31 @@ let filterList = [
   {
     id: "borders",
     quickMenu: true,
-    toggledLayers: ["country_boundaries", "state_lines_admin_4"],
+    toggledLayers: [
+      "country_boundaries",
+      "state_lines_admin_4"
+    ],
     prettyName: "Borders",
     isOn: true,
     subcategories: [
       {
+        id: "state-lines",
+        isOn: true,
+        toggledLayers: [
+          "state_lines_admin_4",
+          "states_fill"
+        ],
+        prettyName: "State Lines"
+      },
+      {
         id: "country-lines",
         isOn: true,
-        toggledLayers: ["country_boundaries"],
-      },
-    ],
+        toggledLayers: [
+          "country_boundaries",
+          "country_boundaries_fill"
+        ]
+      }
+    ]
   },
   {
     id: "labels",
@@ -286,7 +301,7 @@ let filterList = [
       "city_labels_town_z8",
       "city_labels_z11",
       "city_labels_z6",
-      "country_points_labels_cen",
+      "country_points_labels_cen", 
       "country_points_labels",
       "county_labels_z11_admin_7-8_centroids",
       "county_labels_z11_admin_6_centroids",
@@ -299,16 +314,19 @@ let filterList = [
       "other_countries",
       "placearea_label",
       "custom-markers-layer",
+      
     ],
     prettyName: "Labels",
     subcategories: [
       {
         id: "capital-cities",
         isOn: true,
-        toggledLayers: ["city_capital_labels"],
+        toggledLayers: [
+          "city_capital_labels"
+        ],
         prettyName: "Capital Cities",
         quickMenu: true,
-        isDefaultOn: true,
+        isDefaultOn: true
       },
       {
         id: "minor-cities",
@@ -318,28 +336,33 @@ let filterList = [
           "city_labels_other_z11",
           "city_labels_town_z8",
           "city_labels_z11",
-          "city_labels_z6",
+          "city_labels_z6"
         ],
         prettyName: "Minor Cities",
         quickMenu: true,
-        isDefaultOn: false,
+        isDefaultOn: false
       },
       {
         id: "state-labels",
         isOn: true,
-        toggledLayers: ["state_points_labels_centroids", "state_points_labels"],
+        toggledLayers: [
+          "state_points_labels_centroids",
+          "state_points_labels"
+        ],
         prettyName: "States",
         quickMenu: true,
-        isDefaultOn: false,
+        isDefaultOn: false
       },
       {
         id: "custom-markers",
         isOn: true,
-        toggledLayers: ["custom-markers-layer"],
+        toggledLayers: [
+          "custom-markers-layer"
+        ],
         prettyName: "Custom Markers",
-        isDefaultOn: true,
-      },
-    ],
+        isDefaultOn: true
+      }
+    ]
   },
   {
     id: "rivers",
@@ -357,279 +380,274 @@ let filterList = [
       "water_areas_labels_z15",
       "water_areas_labels_z12",
       "water_areas_labels_z8",
-      "water_lines_river",
-    ],
+      "water_lines_river"
+    ]
   },
   {
     id: "background",
     quickMenu: false,
     isOn: true,
-    toggledLayers: ["background", "water_areas"],
-  },
-];
+    toggledLayers: [
+      "background",
+      "water_areas"
+    ]
+  }
+]
 
 function toggleLayers(on, layerList) {
   if (layerList) {
-    if (on) {
+    if(on) {
       for (i of layerList) {
         if (!whitelist.includes(i)) {
-          whitelist.push(i);
-        }
+          whitelist.push(i)
+        } 
       }
     } else {
       for (i of layerList) {
         if (whitelist.includes(i)) {
-          whitelist = whitelist.filter((f) => f !== i);
+          whitelist = whitelist.filter(f => f !== i)
         }
       }
     }
-    updateMapLayers();
+    updateMapLayers()
   }
 }
 
 // hover effect
-let hover = false;
-let hoveredCountryId;
-let hoveredStateId;
+let hover = false
+let hoveredCountryId
+let hoveredStateId
 
 // countries
-// map.on("mousemove", "country_boundaries_fill", (e) => {
-//   if (e.features.length > 0) {
-//     if (hoveredCountryId != null) {
-//       map.setFeatureState(
-//         {
-//           source: "ohm_admin",
-//           sourceLayer: "boundaries",
-//           id: hoveredCountryId,
-//         },
-//         { hover: false },
-//       );
-//     }
+map.on('mousemove', 'country_boundaries_fill', (e) => {
+  if (e.features.length > 0) {
+    if (hoveredCountryId != null) {
+      map.setFeatureState(
+        {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredCountryId},
+        {hover: false}
+      )
+    }
 
-//     hoveredCountryId = e.features[0].id;
-//     map.setFeatureState(
-//       { source: "ohm_admin", sourceLayer: "boundaries", id: hoveredCountryId },
-//       { hover: true },
-//     );
-//   }
-// });
-// map.on("mouseleave", "country_boundaries_fill", (e) => {
-//   if (hoveredCountryId != null) {
-//     map.setFeatureState(
-//       { source: "ohm_admin", sourceLayer: "boundaries", id: hoveredCountryId },
-//       { hover: false },
-//     );
-//   }
-//   hoveredCountryId = null;
-// });
+    hoveredCountryId = e.features[0].id
+    map.setFeatureState(
+      {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredCountryId},
+      {hover: true}
+    )
+  }
+})
+map.on("mouseleave", "country_boundaries_fill", (e) => {
+  if (hoveredCountryId != null) {
+    map.setFeatureState(
+      {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredCountryId},
+      {hover: false}
+    )
+  }
+  hoveredCountryId = null
+})
+
 
 // states
-// map.on('mousemove', 'states_fill', (e) => {
-//   if (e.features.length > 0) {
-//     if (hoveredStateId != null) {
-//       map.setFeatureState(
-//         {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
-//         {hover: false}
-//       )
-//     }
+map.on('mousemove', 'states_fill', (e) => {
+  if (e.features.length > 0) {
+    if (hoveredStateId != null) {
+      map.setFeatureState(
+        {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
+        {hover: false}
+      )
+    }
 
-//     hoveredStateId = e.features[0].id
-//     map.setFeatureState(
-//       {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
-//       {hover: true}
-//     )
-//   }
-// })
-// map.on("mouseleave", "states_fill", (e) => {
-//   if (hoveredStateId != null) {
-//     map.setFeatureState(
-//       {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
-//       {hover: false}
-//     )
-//   }
-//   hoveredStateId = null;
-// })
+    hoveredStateId = e.features[0].id
+    map.setFeatureState(
+      {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
+      {hover: true}
+    )
+  }
+})
+map.on("mouseleave", "states_fill", (e) => {
+  if (hoveredStateId != null) {
+    map.setFeatureState(
+      {source: "ohm_admin", sourceLayer: "boundaries", id: hoveredStateId},
+      {hover: false}
+    )
+  }
+  hoveredStateId = null;
+})
+
 
 function toggleHoverCountries(visible) {
   if (visible) {
-    // map.setLayoutProperty("country_boundaries_fill", "visibility", "visible");
+    map.setLayoutProperty('country_boundaries_fill', 'visibility', 'visible')
   } else {
-    // map.setLayoutProperty("country_boundaries_fill", "visibility", "none");
+    map.setLayoutProperty('country_boundaries_fill', 'visibility', 'none')
   }
 }
 
 function toggleHoverStates(visible) {
   if (visible) {
-    // map.setLayoutProperty('states_fill', 'visibility', 'visible')
+    map.setLayoutProperty('states_fill', 'visibility', 'visible')
   } else {
-    // map.setLayoutProperty('states_fill', 'visibility', 'none')
+    map.setLayoutProperty('states_fill', 'visibility', 'none')
   }
 }
 
 function applyHovers(visible) {
   if (visible) {
-    if (map.getZoom() >= 4 && filterList[0].subcategories[0].isOn) {
-      toggleHoverCountries(false);
-      toggleHoverStates(true);
+    if (map.getZoom() >=  4 && filterList[0].subcategories[0].isOn) {
+      toggleHoverCountries(false)
+      toggleHoverStates(true)
     } else {
-      toggleHoverCountries(true);
-      toggleHoverStates(false);
+      toggleHoverCountries(true)
+      toggleHoverStates(false)
     }
   } else {
-    toggleHoverCountries(false);
-    toggleHoverStates(false);
+    toggleHoverCountries(false)
+    toggleHoverStates(false)
   }
 }
 
 map.on("wheel", (e) => {
-  applyHovers(hover);
-});
+  applyHovers(hover)
+})
 
-const toggleQuickMenu = document.getElementById("scroll");
+const toggleQuickMenu = document.getElementById("scroll")
 
 // new(er) filter event listener logic
 function addFilters() {
   for (let filter of filterList) {
-    if (filter.isOn) {
-      toggleLayers(true, filter.toggledLayers);
+    if(filter.isOn) {
+      toggleLayers(true, filter.toggledLayers)
     }
-    const clickableElement = document.querySelectorAll(`#${filter.id}.head`);
-    const toggledElement = document.querySelectorAll(`#${filter.id}.filter`);
+    const clickableElement = document.querySelectorAll(`#${filter.id}.head`)
+    const toggledElement = document.querySelectorAll(`#${filter.id}.filter`)
     for (let i = 0; i < clickableElement.length; i++) {
-      console.log("are we there yet?");
-      console.log(false);
-      const element = clickableElement[i];
-      const toggledEl = toggledElement[i];
+      console.log("are we there yet?")
+      console.log(false)
+      const element = clickableElement[i]
+      const toggledEl = toggledElement[i]
       if (filter.isOn) {
-        toggledEl.classList.add("on");
-        toggleLayers(true, filter.toggledLayers);
+        toggledEl.classList.add("on")
+        toggleLayers(true, filter.toggledLayers)
       } else {
-        toggleLayers(false, filter.toggledLayers);
+        toggleLayers(false, filter.toggledLayers)
       }
       element.addEventListener("click", () => {
-        console.log(filter.toggledLayers);
-        toggleLayers(!filter.isOn, filter.toggledLayers);
-        filter.isOn = !filter.isOn;
+        console.log(filter.toggledLayers)
+        toggleLayers(!filter.isOn, filter.toggledLayers)
+        filter.isOn = !filter.isOn
         if (filter.isOn) {
-          toggledEl.classList.add("on");
+          toggledEl.classList.add("on")
         } else {
-          toggledEl.classList.remove("on");
+          toggledEl.classList.remove("on")
         }
-      });
+      })
     }
     if (filter.subcategories) {
       for (let subcategory of filter.subcategories) {
         if (subcategory.isOn) {
-          toggleLayers(true, subcategory.toggledLayers);
+          toggleLayers(true, subcategory.toggledLayers)
         } else {
-          toggleLayers(false, subcategory.toggledLayers);
+          toggleLayers(false, subcategory.toggledLayers)
         }
-        const id = document.querySelectorAll(`#${subcategory.id}`);
+        const id = document.querySelectorAll(`#${subcategory.id}`)
         for (let element of id) {
           if (subcategory.isOn) {
-            element.classList.add("on");
+            element.classList.add("on")
           }
           element.addEventListener("click", () => {
-            console.log(subcategory.toggledLayers);
-            toggleLayers(!subcategory.isOn, subcategory.toggledLayers);
-            subcategory.isOn = !subcategory.isOn;
+            console.log(subcategory.toggledLayers)
+            toggleLayers(!subcategory.isOn, subcategory.toggledLayers) 
+            subcategory.isOn = !subcategory.isOn
             if (subcategory.isOn) {
-              element.classList.add("on");
+              element.classList.add("on")
             } else {
-              element.classList.remove("on");
+              element.classList.remove("on")
             }
-          });
+          })
         }
       }
     }
   }
+  
 }
 
-filterButtons = [
-  document.getElementById("filter-img"),
-  document.getElementById("more-filters"),
-];
-let clickOnBackgroundToClose = false;
+filterButtons = [document.getElementById("filter-img"), document.getElementById("more-filters")]
+let clickOnBackgroundToClose = false
 
 function closeAllOpenMenus() {
-  optionsContainer.classList.add("invisible");
-  layerSelection.classList.add("invisible");
-  saveAsScreen.classList.add("invisible");
+  optionsContainer.classList.add("invisible")
+  layerSelection.classList.add("invisible")
+  saveAsScreen.classList.add("invisible")
 }
 
 // filter page
 for (el of filterButtons) {
   el.addEventListener("click", () => {
-    clickOnBackgroundToClose = true;
-    optionsContainer.classList.remove("invisible");
-    layerSelection.classList.remove("invisible");
-  });
+    clickOnBackgroundToClose = true
+    optionsContainer.classList.remove("invisible")
+    layerSelection.classList.remove("invisible")
+  })
 }
-const filterCloseButton = document.getElementById("filter-close-button");
+const filterCloseButton = document.getElementById("filter-close-button")
 filterCloseButton.addEventListener("click", () => {
-  clickOnBackgroundToClose = false;
-  optionsContainer.classList.add("invisible");
-  layerSelection.classList.add("invisible");
-});
+  clickOnBackgroundToClose = false
+  optionsContainer.classList.add("invisible")
+  layerSelection.classList.add("invisible")
+})
 optionsContainer.addEventListener("click", (e) => {
-  if (
-    layerSelection.contains(e.target) ||
-    saveAsScreen.contains(e.target) ||
-    !clickOnBackgroundToClose
-  )
-    return;
-  clickOnBackgroundToClose = false;
-  closeAllOpenMenus();
-});
+  if (layerSelection.contains(e.target) || saveAsScreen.contains(e.target) ||!clickOnBackgroundToClose) return;
+  clickOnBackgroundToClose = false
+  closeAllOpenMenus()
+})
+
 
 // download as page
-const saveAs = document.getElementById("save-as");
+const saveAs = document.getElementById("save-as")
 saveAs.addEventListener("click", () => {
   clickOnBackgroundToClose = true;
-  optionsContainer.classList.remove("invisible");
-  saveAsScreen.classList.remove("invisible");
-});
-const saveAsCloseButton = document.getElementById("save-as-close-button");
+  optionsContainer.classList.remove("invisible")
+  saveAsScreen.classList.remove("invisible")
+})
+const saveAsCloseButton = document.getElementById("save-as-close-button")
 saveAsCloseButton.addEventListener("click", () => {
-  clickOnBackgroundToClose = false;
-  optionsContainer.classList.add("invisible");
-  saveAsScreen.classList.add("invisible");
-});
+  clickOnBackgroundToClose = false
+  optionsContainer.classList.add("invisible")
+  saveAsScreen.classList.add("invisible")
+})
 
-const filenameSelector = document.getElementById("filename");
-const filetypeSelector = document.getElementById("filetype");
-const resolutionSelector = document.getElementById("resolution");
-const downloadButton = document.getElementById("download-button");
+const filenameSelector = document.getElementById('filename')
+const filetypeSelector = document.getElementById('filetype')
+const resolutionSelector = document.getElementById('resolution')
+const downloadButton = document.getElementById('download-button')
 
-function sanitizeFilename(raw, ext = ".png") {
+function sanitizeFilename(raw, ext = '.png') {
   const reserved = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
-  let name = (raw || "").trim().replace(/[^a-z0-9._-]+/gi, "_");
+  let name = (raw || '').trim().replace(/[^a-z0-9._-]+/gi, '_');
   name = name.slice(0, 80);
   if (reserved.test(name)) name = `_${name}`;
   if (!name.toLowerCase().endsWith(ext.toLowerCase())) name += ext;
   return name;
 }
 
-downloadButton.addEventListener("click", () => {
-  saveAsScreen.classList.add("invisible");
-  optionsContainer.classList.add("invisible");
-  let filename = filenameSelector.value;
-  let filetype = filetypeSelector.value;
-  let resolution = resolutionSelector.value;
+downloadButton.addEventListener('click', () => {
+  saveAsScreen.classList.add('invisible')
+  optionsContainer.classList.add('invisible')
+  let filename = filenameSelector.value
+  let filetype = filetypeSelector.value
+  let resolution = resolutionSelector.value
   clickOnBackgroundToClose = false;
   if (!filename) {
-    filename = "MapThingyDownload";
+    filename = 'MapThingyDownload'
   } else {
-    filename = filename + String(filetype);
+    filename = filename + String(filetype)
   }
-  const ext = filetype;
-  const safeName = sanitizeFilename(filename, ext);
-  const container = map.getContainer();
-  let res_x;
-  let res_y;
-  if (resolution == "current") {
-    res_x = container.style.width;
-    res_y = container.style.height;
+  const ext = filetype
+  const safeName = sanitizeFilename(filename, ext)
+  const container = map.getContainer()
+  let res_x
+  let res_y
+  if(resolution == "current") {
+    res_x = container.style.width
+    res_y = container.style.height
   } else if (resolution == "1080p") {
     res_x = 1920;
     res_y = 1080;
@@ -637,568 +655,554 @@ downloadButton.addEventListener("click", () => {
     res_x = 3160;
     res_y = 2160;
   }
-  downloadAsPng(res_x, res_y, safeName);
-});
+  downloadAsPng(res_x, res_y, safeName)
+})
+
 
 applyWhitelist = true;
 function toggleWhitelist() {
   if (applyWhitelist) {
-    applyWhitelist = false;
+    applyWhitelist = false
   } else {
-    applyWhitelist = true;
+    applyWhitelist = true
   }
-  updateMapLayers();
+  updateMapLayers()
 }
 
 // add a function to update the map when the user clicks a toggle to show/hide something
 
 function updateMapLayers() {
   const style = map.getStyle();
-  layers = [];
-  appliedLayers = [];
+  layers = []
+  appliedLayers = []
   for (const layer of style.layers) {
-    if (
-      (!whitelist.includes(layer.id) && applyWhitelist) ||
-      (layer.id == "ohm_landcover_hillshade" && isDarkMode)
-    ) {
+    if (!whitelist.includes(layer.id) && applyWhitelist || layer.id == "ohm_landcover_hillshade" && isDarkMode) {
       map.setLayoutProperty(layer.id, "visibility", "none");
     } else {
-      map.setLayoutProperty(layer.id, "visibility", "visible");
-      appliedLayers.push(layer.id);
+      map.setLayoutProperty(layer.id, "visibility", "visible")
+      appliedLayers.push(layer.id)
       // console.log(layer.id)
     }
     layers.push(layer.id);
     // console.log(layers)
     if (hover) {
-      applyHovers(true);
+      applyHovers(true)
     } else {
-      applyHovers(false);
+      applyHovers(false)
     }
   }
+
 }
 
 let applyColors = true;
 
+
 function updateColors() {
-  const style = map.getStyle();
-  let targetLayers = [];
-  let styleIndex = customColors.findIndex((f) => f.name == colorStyle);
+  const style = map.getStyle()
+  let targetLayers = []
+  let styleIndex = customColors.findIndex(f => f.name == colorStyle)
   for (layer of style.layers) {
     if (customColors[styleIndex].colors.hasOwnProperty(layer.id)) {
       let paintProperty = "background-color";
-      let secondaryProperty;
+      let secondaryProperty
       if (layer.type == "background") {
-        paintProperty = "background-color";
+        paintProperty = "background-color"
       } else if (layer.type == "fill") {
-        paintProperty = "fill-color";
+        paintProperty = "fill-color"
       } else if (layer.type == "line") {
-        paintProperty = "line-color";
+        paintProperty = "line-color"
       }
-      customColors[styleIndex].colors[layer.id];
+         customColors[styleIndex].colors[layer.id]
       map.setPaintProperty(
-        layer.id,
-        paintProperty,
-        customColors[styleIndex].colors[layer.id],
-      );
+         layer.id,
+         paintProperty,
+         customColors[styleIndex].colors[layer.id]
+      )
     }
     if (layer.type == "symbol") {
-      if (customColors[styleIndex].text_color) {
+      if (customColors[styleIndex].text_color){
         map.setPaintProperty(
           layer.id,
           "text-color",
-          customColors[styleIndex].text_color,
-        );
+          customColors[styleIndex].text_color
+        )
       }
       if (customColors[styleIndex].text_halo) {
         map.setPaintProperty(
           layer.id,
           "text-halo-color",
-          customColors[styleIndex].text_halo,
-        );
+          customColors[styleIndex].text_halo
+        )
       }
     }
   }
   if (customColors[styleIndex].useLandCover != null) {
-    if (customColors[styleIndex].useLandCover) {
-      map.setLayoutProperty("ohm_landcover_hillshade", "visibility", "visible");
+    if(customColors[styleIndex].useLandCover) {
+      map.setLayoutProperty("ohm_landcover_hillshade", "visibility", "visible")
     } else {
-      map.setLayoutProperty("ohm_landcover_hillshade", "visibility", "none");
+      map.setLayoutProperty("ohm_landcover_hillshade", "visibility", "none")
     }
   }
 }
-
-window.addEventListener("beforeprint", (e) => {
-  console.log("updated to light mode");
-  colorStyle = "light";
-  updateColors();
-});
-
-window.addEventListener("afterprint", (e) => {
-  colorStyle = isDarkMode ? "dark" : "light";
-  updateColors;
-});
 
 // handle Dark Mode from browser
 function swapDarkModeImages(isDarkMode) {
   const imgList = [
     {
       id: "save-img",
-      filename: "save",
+      filename: "save"
     },
     {
       id: "filter-img",
-      filename: "filter",
+      filename: "filter"
     },
     {
       id: "logo-img",
-      filename: "icon",
+      filename: "icon"
     },
     {
       id: "zoom-in-img",
-      filename: "plus",
+      filename: "plus"
     },
     {
       id: "zoom-out-img",
-      filename: "minus",
+      filename: "minus"
     },
     {
       id: "query-img",
-      filename: "query",
+      filename: "query"
     },
     {
       id: "globe-img",
-      filename: "globe",
+      filename: "globe"
     },
     {
       id: "filter-close-button",
-      filename: "close",
+      filename: "close"
     },
     {
       id: "save-as-close-button",
-      filename: "close",
-    },
-  ];
+      filename: "close"
+    }
+  ]
 
   if (isDarkMode) {
     for (img of imgList) {
-      let el = document.getElementById(img.id);
-      el.src = `./images/icons/${img.filename}-dark.svg`;
+      let el = document.getElementById(img.id)
+      el.src = `./images/icons/${img.filename}-dark.svg`
     }
   } else {
     for (img of imgList) {
-      let el = document.getElementById(img.id);
-      el.src = `./images/icons/${img.filename}.svg`;
+      let el = document.getElementById(img.id)
+      el.src = `./images/icons/${img.filename}.svg`
     }
   }
 }
 
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    isDarkMode = e.matches;
-    colorStyle = isDarkMode ? "Dark" : "Light";
-    updateColors();
-    swapDarkModeImages(isDarkMode);
-  });
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+  isDarkMode = e.matches;
+  colorStyle = isDarkMode ? "Dark" : "Light"
+  updateColors()
+  swapDarkModeImages(isDarkMode)
+});
 
 function isValidDate(year, era) {
-  const CurrentYear = 2026;
-  if (year == "") {
-    console.log("`year is blank");
+  const CurrentYear = 2026
+  if(year == "") {
+    console.log("`year is blank")
     return false;
-  }
-  if (year < 0) {
-    console.log(`${year} is less than 0`);
+  } if(year < 0) {
+    console.log(`${year} is less than 0`)
     return false;
-  } else if (era == "AD" && year > CurrentYear) {
-    console.log(`${year} is more than current year`);
-    return false;
-  } else if (era == "BC" && year > 3000) {
-    console.log(`${year} is less than 3000 BC`);
-    return false;
+  } else if(era == 'AD' && year > CurrentYear) {
+    console.log(`${year} is more than current year`)
+    return false
+  } else if (era == 'BC' && year > 3000) {
+    console.log(`${year} is less than 3000 BC`)
+    return false
   } else {
-    return true;
+    return true
   }
 }
 
+
 // custom map controls for dark mode
-const zoomIn = document.getElementById("zoom-in");
-const zoomOut = document.getElementById("zoom-out");
-const globeControl = document.getElementById("globe");
-const queryControl = document.getElementById("query-control");
-const queryImg = document.getElementById("query-img");
-let queryClicked = false;
+const zoomIn = document.getElementById('zoom-in')
+const zoomOut = document.getElementById('zoom-out')
+const globeControl = document.getElementById('globe')
+const queryControl = document.getElementById('query-control')
+const queryImg = document.getElementById("query-img")
+let queryClicked = false
 
-zoomIn.addEventListener("mousedown", (e) => {
-  e.preventDefault();
-});
-zoomIn.addEventListener("click", () => {
-  map.zoomIn();
-});
-zoomOut.addEventListener("mousedown", (e) => {
-  e.preventDefault();
-});
-zoomOut.addEventListener("click", () => {
-  map.zoomOut();
-});
-globeControl.addEventListener("mousedown", (e) => {
-  e.preventDefault;
-});
-queryControl.addEventListener("mousedown", (e) => {
-  e.preventDefault;
-});
-queryControl.addEventListener("click", () => {
+zoomIn.addEventListener('mousedown', (e) => {
+  e.preventDefault()
+})
+zoomIn.addEventListener('click', () => {
+  map.zoomIn()
+})
+zoomOut.addEventListener('mousedown', (e) => {
+  e.preventDefault()
+})
+zoomOut.addEventListener('click', () => {
+  map.zoomOut()
+})
+globeControl.addEventListener('mousedown', (e) => {
+  e.preventDefault
+})
+queryControl.addEventListener('mousedown', (e) => {
+  e.preventDefault
+})
+queryControl.addEventListener('click', () => {
   if (!queryClicked) {
-    queryClicked = true;
-    applyHovers(true);
-    queryImg.src = "./images/icons/query-selected.svg";
-    hover = true;
-    // set a custom cursor
-    map.getCanvas().style.cursor = "url('./images/icons/query-dark.svg'), auto";
+    queryClicked = true
+    applyHovers(true)
+    queryImg.src = "./images/icons/query-selected.svg"
+    hover = true
+    // set a custom cursor 
+    map.getCanvas().style.cursor = "url('./images/icons/query-dark.svg'), auto"
   } else {
-    queryClicked = false;
-    applyHovers(false);
-    swapDarkModeImages(isDarkMode);
-    hover = false;
-    map.getCanvas().style.cursor = "";
+    queryClicked = false
+    applyHovers(false)
+    swapDarkModeImages(isDarkMode)
+    hover = false
+    map.getCanvas().style.cursor = ""
   }
-});
+})
 
-globeControl.addEventListener("click", () => {
-  const currentProjection = map.getProjection();
-  console.log;
+globeControl.addEventListener('click', () => {
+  const currentProjection = map.getProjection()
+  console.log
   if (currentProjection) {
-    if (currentProjection.type == "mercator") {
-      map.setProjection({ type: "globe" });
+    if (currentProjection.type == 'mercator') {
+      map.setProjection({type: 'globe'})
     } else {
-      map.setProjection({ type: "mercator" });
+      map.setProjection({type: 'mercator'})
     }
   } else {
-    map.setProjection({ type: "globe" });
+    map.setProjection({type: 'globe'})
   }
-});
+  
+})
 
 // date range event listeners
-const minDateSelection = document.getElementById("min-date-selection");
-const maxDateSelection = document.getElementById("max-date-selection");
-const minDateDisplay = document.getElementById("min-date");
-const maxDateDisplay = document.getElementById("max-date");
-const minEraDisplay = document.getElementById("min-era");
-const maxEraDisplay = document.getElementById("max-era");
-const minEraInput = document.getElementById("min-era-select");
-const maxEraInput = document.getElementById("max-era-select");
-const minDateInput = document.getElementById("min-date-input");
-const maxDateInput = document.getElementById("max-date-input");
+const minDateSelection = document.getElementById('min-date-selection')
+const maxDateSelection = document.getElementById('max-date-selection')
+const minDateDisplay = document.getElementById('min-date')
+const maxDateDisplay = document.getElementById('max-date')
+const minEraDisplay = document.getElementById('min-era')
+const maxEraDisplay = document.getElementById('max-era')
+const minEraInput = document.getElementById('min-era-select')
+const maxEraInput = document.getElementById('max-era-select')
+const minDateInput = document.getElementById('min-date-input')
+const maxDateInput = document.getElementById('max-date-input')
 
-minDateSelection.classList.add("invisible");
-maxDateSelection.classList.add("invisible");
-const minDate = document.getElementById("min-date-container");
-const maxDate = document.getElementById("max-date-container");
+minDateSelection.classList.add('invisible')
+maxDateSelection.classList.add('invisible')
+const minDate = document.getElementById('min-date-container')
+const maxDate = document.getElementById('max-date-container')
 
-function isLessThanDate(
-  date = minDateInput.value,
-  era = minEraInput.value,
-  compareDate = maxDateInput.value,
-  compareEra = maxEraInput.value,
-) {
-  date = Number(date);
-  compareDate = Number(compareDate);
+function isLessThanDate(date = minDateInput.value, era = minEraInput.value, compareDate = maxDateInput.value, compareEra = maxEraInput.value) {
+  date = Number(date)
+  compareDate = Number(compareDate)
   if (era == "BC") {
     if (compareEra == "BC") {
       // dates are both bc, higher number is older
-      return date > compareDate;
+      return (date > compareDate)
     } else {
       // BC dates cannot be more than AD dates
-      return true;
-    }
+      return true
+    } 
   } else {
     if (compareEra == "BC") {
       // AD dates always are more than BC dates
-      return false;
+      return false
     } else {
       // dates are both AD, higher number is younger
-      return date < compareDate;
+      return (date < compareDate)
     }
   }
 }
 function updateDate() {
-  date = Number(slider.value);
-  date = date.toString();
+  date = Number(slider.value)
+  date = date.toString()
   // console.log(date)
   // console.log(slider.value)
-  map.filterByDate(date);
+  map.filterByDate(date)
 }
 
-let lastValidMin = 1776;
-let lastValidMax = 2025;
+let lastValidMin = 1776
+let lastValidMax = 2025
 
-minDate.addEventListener("mouseenter", () => {
-  minDateSelection.classList.remove("invisible");
-  minDateDisplay.classList.add("invisible");
-  minEraDisplay.classList.add("invisible");
-});
-minDate.addEventListener("mouseleave", () => {
-  minDateSelection.classList.add("invisible");
-  minDateDisplay.classList.remove("invisible");
-  minEraDisplay.classList.remove("invisible");
-});
-maxDate.addEventListener("mouseenter", () => {
-  maxDateSelection.classList.remove("invisible");
-  maxDateDisplay.classList.add("invisible");
-  maxEraDisplay.classList.add("invisible");
-});
-maxDate.addEventListener("mouseleave", () => {
-  maxDateSelection.classList.add("invisible");
-  maxDateDisplay.classList.remove("invisible");
-  maxEraDisplay.classList.remove("invisible");
-});
+minDate.addEventListener('mouseenter', () => {
+  minDateSelection.classList.remove('invisible')
+  minDateDisplay.classList.add('invisible')
+  minEraDisplay.classList.add('invisible')
+})
+minDate.addEventListener('mouseleave', () => {
+  minDateSelection.classList.add('invisible')
+  minDateDisplay.classList.remove('invisible')
+  minEraDisplay.classList.remove('invisible')
+  
+})
+maxDate.addEventListener('mouseenter', () => {
+  maxDateSelection.classList.remove('invisible')
+  maxDateDisplay.classList.add('invisible')
+  maxEraDisplay.classList.add('invisible')
+})
+maxDate.addEventListener('mouseleave', () => {
+  maxDateSelection.classList.add('invisible')
+  maxDateDisplay.classList.remove('invisible')
+  maxEraDisplay.classList.remove('invisible')
+})
 
-// check date validity only on focusout, but update slider on
-// input to make it look better
-minDateInput.addEventListener("input", () => {
-  if (isValidDate(minDateInput.value)) {
+
+// check date validity only on focusout, but update slider on 
+// input to make it look better 
+minDateInput.addEventListener('input', () => {
+  if(isValidDate(minDateInput.value)) {
     if (minEraInput.value == "BC") {
-      slider.min = Math.abs(minDateInput.value) * -1;
+      slider.min = Math.abs(minDateInput.value) * -1
     } else {
-      slider.min = Math.abs(minDateInput.value);
+      slider.min = Math.abs(minDateInput.value)
     }
-    setFill();
+    setFill()
   }
 });
-minDateInput.addEventListener("focusout", () => {
-  let date = minDateInput.value;
+minDateInput.addEventListener('focusout', () => {
+  let date = minDateInput.value
   if (isValidDate(minDateInput.value, minEraDisplay) && isLessThanDate()) {
-    if (minEraInput.value == "BC") {
-      slider.min = Math.abs(date) * -1;
+    if (minEraInput.value == 'BC') {
+      slider.min = (Math.abs(date) * -1)
     } else {
-      slider.min = Math.abs(date);
+      slider.min = Math.abs(date)
     }
-    minDateDisplay.innerHTML = date;
-    lastValidMin = date;
-    map.filterByDate(slider.value);
-    setFill();
+    minDateDisplay.innerHTML = date
+    lastValidMin = date
+    map.filterByDate(slider.value)
+    setFill()
   } else {
-    minDateInput.value = lastValidMin;
+    minDateInput.value = lastValidMin
   }
-});
+})
 
-minEraInput.addEventListener("input", () => {
+minEraInput.addEventListener('input', () => {
   if (isLessThanDate()) {
-    minEraDisplay.innerHTML = minEraInput.value;
-    if (minEraInput.value == "BC") {
-      slider.min = Math.abs(minDateInput.value) * -1;
+    minEraDisplay.innerHTML = minEraInput.value
+    if (minEraInput.value == 'BC') {
+      slider.min = (Math.abs(minDateInput.value) * -1)
     } else {
-      slider.min = Math.abs(minDateInput.value);
-    }
-    setFill();
+      slider.min = Math.abs(minDateInput.value)
+    } 
+  setFill()
   } else {
     if (minEraInput.value == "BC") {
-      minEraInput.value = "AD";
+      minEraInput.value = "AD"
     } else {
-      minEraInput.value = "BC";
+      minEraInput.value = "BC"
     }
   }
-  updateDate();
+  updateDate()
 });
 
-maxDateInput.addEventListener("input", () => {
-  if (isValidDate(maxDateInput.value)) {
+maxDateInput.addEventListener('input', () => {
+  if(isValidDate(maxDateInput.value)) {
     if (maxEraInput.value == "BC") {
-      slider.max = Math.abs(maxDateInput.value) * -1;
+      slider.max = (Math.abs(maxDateInput.value) * -1)
     } else {
-      slider.max = Math.abs(maxDateInput.value);
+      slider.max = Math.abs(maxDateInput.value)
     }
-    setFill();
+    setFill()
   }
 });
-maxDateInput.addEventListener("focusout", () => {
-  let date = maxDateInput.value;
+maxDateInput.addEventListener('focusout', () => {
+  let date = maxDateInput.value
   if (isValidDate(maxDateInput.value, maxEraDisplay) && isLessThanDate()) {
-    if (maxEraInput.ivalue == "BC") {
-      slider.max = Math.abs(date) * -1;
+    if (maxEraInput.ivalue == 'BC') {
+      slider.max = (Math.abs(date) * -1)
     } else {
-      slider.max = date;
+      slider.max = date
     }
-    maxDateDisplay.innerHTML = date;
-    lastValidMax = date;
-    map.filterByDate(slider.value);
-    setFill();
+    maxDateDisplay.innerHTML = date
+    lastValidMax = date
+    map.filterByDate(slider.value)
+    setFill()
   } else {
-    maxDateInput.value = lastValidMax;
+    maxDateInput.value = lastValidMax
   }
+})
+
+maxEraInput.addEventListener('input', () => {
+  if(isLessThanDate()) {
+    maxEraDisplay.innerHTML = maxEraInput.value
+    if (maxEraInput.value == 'BC') {
+      slider.max = (Math.abs(maxDateInput.value) * -1)
+    } else {
+      slider.max = maxDateInput.value
+    }
+    setFill()
+  } else {
+    if (maxEraInput.value == "BC") {
+      maxEraInput.value = "AD"
+    } else {
+      maxEraInput.value = "AD"
+    }
+  }
+  updateDate()
 });
 
-maxEraInput.addEventListener("input", () => {
-  if (isLessThanDate()) {
-    maxEraDisplay.innerHTML = maxEraInput.value;
-    if (maxEraInput.value == "BC") {
-      slider.max = Math.abs(maxDateInput.value) * -1;
-    } else {
-      slider.max = maxDateInput.value;
-    }
-    setFill();
-  } else {
-    if (maxEraInput.value == "BC") {
-      maxEraInput.value = "AD";
-    } else {
-      maxEraInput.value = "AD";
-    }
-  }
-  updateDate();
-});
-
-// input resizing
+// input resizing 
 function resizeInput(input) {
-  input.style.width = "calc(" + (input.value.length || 1) + "ch + 15px)";
+  input.style.width = 'calc(' + (input.value.length || 1) + 'ch + 15px)';
 }
 
-minDateInput.addEventListener("input", () => {
-  resizeInput(minDateInput);
-});
-resizeInput(minDateInput);
-maxDateInput.addEventListener("input", () => {
-  resizeInput(maxDateInput);
-});
-resizeInput(maxDateInput);
+minDateInput.addEventListener('input', () => {
+  resizeInput(minDateInput)
+})
+resizeInput(minDateInput)
+maxDateInput.addEventListener('input', () => {
+  resizeInput(maxDateInput)
+})
+resizeInput(maxDateInput)
 
 // date display stuf
-const dateDisplay = document.getElementById("current-date-display");
+const dateDisplay = document.getElementById('current-date-display')
 
 function updateDateDisplay() {
-  const val = Number(slider.value);
-  const min = Number(slider.min);
-  const max = Number(slider.max);
-  const percent = (val - min) / (max - min);
-  let sliderWidth = slider.offsetWidth - 50; // subtract padding
+  const val = Number(slider.value)
+  const min = Number(slider.min)
+  const max = Number(slider.max)
+  const percent = (val - min) / (max - min)
+  let sliderWidth = slider.offsetWidth - 50 // subtract padding
   if (isPhone) {
-    sliderWidth = slider.offsetWidth - 40;
+    sliderWidth = slider.offsetWidth - 40
   }
-  const displayWidth = dateDisplay.offsetWidth;
-  const sliderOffset = percent * sliderWidth;
+  const displayWidth = dateDisplay.offsetWidth
+  const sliderOffset = percent * (sliderWidth);
   const displayHalfWidth = displayWidth / 2;
-  dateDisplay.style.left = `${sliderOffset - (displayHalfWidth - 35)}px`;
+  dateDisplay.style.left = `${sliderOffset - (displayHalfWidth - 35)}px`
   // console.log(`sliderOffset: ${sliderOffset - (displayHalfWidth - 35)}, sliderWidth: ${sliderWidth} displayHalfWidth: ${displayHalfWidth}, displayhalfwidth - 35: ${(displayHalfWidth - 35)}`)
 
   if (val < 0) {
-    dateDisplay.innerHTML = `${Math.abs(val)} BC`;
+    dateDisplay.innerHTML = `${Math.abs(val)} BC`
   } else {
-    dateDisplay.innerHTML = `${val} AD`;
+    dateDisplay.innerHTML = `${val} AD`
   }
 }
 
-slider.addEventListener("input", () => {
+slider.addEventListener('input', () =>{
   updateDateDisplay();
-});
+})
 slider.addEventListener("mouseenter", () => {
-  dateDisplay.classList.remove("invisible");
-  updateDateDisplay();
-});
+  dateDisplay.classList.remove("invisible")
+  updateDateDisplay()
+})
 slider.addEventListener("touchstart", () => {
   dateDisplay.classList.remove("invisible");
   updateDateDisplay();
 });
 
 slider.addEventListener("mouseleave", () => {
-  dateDisplay.classList.add("invisible");
-  updateDateDisplay();
-});
+  dateDisplay.classList.add("invisible")
+  updateDateDisplay()
+})
 slider.addEventListener("touchend", () => {
-  dateDisplay.classList.add("invisible");
-  updateDateDisplay();
-});
+  dateDisplay.classList.add("invisible")
+  updateDateDisplay()
+})
 slider.addEventListener("touchcancel", () => {
-  dateDisplay.classList.add("invisible");
-  updateDateDisplay();
-});
-updateDateDisplay();
+  dateDisplay.classList.add("invisible")
+  updateDateDisplay()
+})
+updateDateDisplay()
 
 // event listener to update the map date based on the slider
-slider.addEventListener("change", () => {
+slider.addEventListener('change', () => {
   updateDate();
 });
 
-function getDataForId(id) {}
+function getDataForId(id) {
+
+}
 
 // smth for debug
-map.on("click", (e) => {
+map.on('click', (e) => {
   const features = map.queryRenderedFeatures(e.point);
-  console.log(
-    features.map((f) => f.id),
-    features,
-  );
+  console.log(features.map(f => f.id), features);
 
-  if (queryClicked) {
-    swapDarkModeImages(isDarkMode);
-    queryClicked = false;
-    applyHovers(false);
-    map.getCanvas().style.cursor = "";
+  if(queryClicked) {
+    swapDarkModeImages(isDarkMode)
+    queryClicked = false
+    applyHovers(false)
+    map.getCanvas().style.cursor = ''
 
     if (map.getZoom() >= 4) {
-      console.log(features[0].properties.name);
+      console.log(features[0].properties.name)
+      
     } else {
-      console.log(features[0].properties.name);
+      console.log(features[0].properties.name)
     }
   }
 });
 
 // right click functionality
-let rightClickMenuOpen = false;
-const menu = document.getElementById("right-click");
-let rightClickList = document.getElementById("right-click-list");
+let rightClickMenuOpen = false
+const menu = document.getElementById('right-click')
+let rightClickList = document.getElementById('right-click-list')
 
 function addToRightClick(text, isLink = false, link) {
-  let li = document.createElement("li");
-  li.textContent = text;
-  if (link) {
-    li.textContent = "";
-    li.innerHTML = `<a href ="${link}" target="_blank">${text}</a>`;
+  let li = document.createElement('li')
+  li.textContent = text
+  if(link) {
+    li.textContent = ''
+    li.innerHTML = `<a href ="${link}" target="_blank">${text}</a>`
   }
-  rightClickList.appendChild(li);
+  rightClickList.appendChild(li)
 }
 
 function addToRightClickTop(text) {
-  let li = document.createElement("li");
-  li.textContent = text;
+  let li = document.createElement('li') 
+  li.textContent = text
   if (rightClickList.firstChild) {
-    rightClickList.insertBefore(li, rightClickList.firstChild);
+    rightClickList.insertBefore(li, rightClickList.firstChild)
   } else {
-    rightClickList.appendChild(li);
+    rightClickList.appendChild(li)
   }
 }
 
-let markers = [];
+
+
+let markers = []
 
 function addMarker(text = "haha", lng, lat) {
-  const source = map.getSource("custom-markers");
-  const data = source._data;
-  let markerId = Date.now();
+  const source = map.getSource('custom-markers')
+  const data = source._data
+  let markerId = Date.now()
   data.features.push({
     id: markerId,
-    type: "Feature",
-    geometry: { type: "Point", coordinates: [lng, lat] },
-    properties: { "name:en": text, name: text },
-  });
-  source.setData(data);
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+    properties: { "name:en": text, name: text }
+  })
+  source.setData(data)
 }
 
 function removeGeneratedItems() {
-  rightClickList.innerHTML = "";
-  let li = document.createElement("li");
-  li.textContent = "Add Marker";
-  li.id = "add-marker";
-  rightClickList.appendChild(li);
+  rightClickList.innerHTML = ''
+  let li = document.createElement('li')
+  li.textContent = 'Add Marker'
+  li.id = 'add-marker'
+  rightClickList.appendChild(li)
 }
 
 function closeMenu(target = null) {
   if (menu.contains(target)) return;
-  rightClickMenuOpen = false;
-  menu.classList.add("invisible");
-  removeGeneratedItems();
+  rightClickMenuOpen = false
+  menu.classList.add('invisible')
+  removeGeneratedItems()
 }
 
 function getWikidataId(id) {
-  url =
-    "https://corsproxy.io/?key=4ffc06b1&url=https://overpass-api.openhistoricalmap.org/api/interpreter";
+  url = "https://corsproxy.io/?key=4ffc06b1&url=https://overpass-api.openhistoricalmap.org/api/interpreter"
   query = `
   [out:json];
   (
@@ -1211,29 +1215,28 @@ function getWikidataId(id) {
   return fetch(url, {
     method: "POST",
     body: query,
-    headers: { "Content-Type": "text/plain" },
+    headers: { "Content-Type": "text/plain"}
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data["elements"][0]) {
-        const tags = data["elements"][0]["tags"];
-        let wikidata = tags.wikidata;
-        let wikipedia = tags.wikipedia;
-        return [wikidata, wikipedia];
+    .then(response => response.json())
+    .then(data => {
+      if (data['elements'][0]) {
+        const tags = data['elements'][0]['tags']   
+        let wikidata = tags.wikidata
+        let wikipedia = tags.wikipedia     
+        return [wikidata, wikipedia]
       }
-    });
+    })
 }
 
 function wikipediaTagToUrl(wikipediaTag) {
-  if (!wikipediaTag || !wikipediaTag.includes(":")) return null;
-  const [lang, ...titleParts] = wikipediaTag.split(":");
-  const title = titleParts.join(":").replace(/ /g, "_");
+  if (!wikipediaTag || !wikipediaTag.includes(':')) return null;
+  const [lang, ...titleParts] = wikipediaTag.split(':');
+  const title = titleParts.join(':').replace(/ /g, '_');
   return `https://${lang}.wikipedia.org/wiki/${title}`;
 }
 
 function fetchPopulation(id) {
-  const url =
-    "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql";
+  const url = "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql"
   const query = `
   SELECT ?population ?populationYear WHERE {
   VALUES ?item { wd:${id} }
@@ -1242,45 +1245,41 @@ function fetchPopulation(id) {
   OPTIONAL { ?populationStatement pq:P585 ?populationYear. }
   SERVICE wikibase:label {bd:serviceParam wikibase:language "en". }
 }
-ORDER BY DESC(?populationYear)`;
+ORDER BY DESC(?populationYear)`
 
   return fetch(url, {
     method: "POST",
-    headers: {
-      Accept: "application/sparql-results+json",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "query=" + encodeURIComponent(query),
+    headers: { "Accept": "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: "query=" + encodeURIComponent(query)
   })
-    .then((response) => response.json())
-    .then((data) => {
-      populationsList = data["results"]["bindings"];
-      populations = [];
+    .then(response => response.json())
+    .then(data => {
+      populationsList = data["results"]["bindings"]
+      populations = []
       for (item of populationsList) {
-        let isoString = new Date(item.populationYear.value);
-        populations.push([item.population.value, isoString.getFullYear()]);
+        let isoString = new Date(item.populationYear.value)
+        populations.push([item.population.value, isoString.getFullYear()])
       }
       return populations;
-    });
+    })
 }
 
 async function fetchPopulationForYear(id, year) {
-  const populations = await fetchPopulation(id);
-  let closestYear = 300099998;
+  const populations = await fetchPopulation(id)
+  let closestYear = 300099998; 
   let closestPopulation = null;
   for ([population, date] of populations) {
     if (Math.abs(date - year) < Math.abs(date - closestYear)) {
       closestYear = date;
-      closestPopulation = population;
+      closestPopulation = population
     }
-  }
-  console.log(closestYear, closestPopulation);
-  return [closestYear, closestPopulation];
+  } 
+  console.log(closestYear, closestPopulation)
+  return [closestYear, closestPopulation]
 }
 
 function fetchStartEndYear(id) {
-  const url =
-    "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql";
+  const url = "https://corsproxy.io/?key=4ffc06b1&url=https://query.wikidata.org/sparql"
   const query = `
   SELECT ?population ?populationYear WHERE {
   VALUES ?item { wd:${id} }
@@ -1289,177 +1288,164 @@ function fetchStartEndYear(id) {
   OPTIONAL { ?populationStatement pq:P585 ?populationYear. }
   SERVICE wikibase:label {bd:serviceParam wikibase:language "en". }
 }
-ORDER BY DESC(?populationYear)`;
+ORDER BY DESC(?populationYear)`
 
   fetch(url, {
     method: "POST",
-    headers: {
-      Accept: "application/sparql-results+json",
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: "query=" + encodeURIComponent(query),
+    headers: { "Accept": "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: "query=" + encodeURIComponent(query)
   })
-    .then((response) => response.json())
-    .then((data) => {
-      populationsList = data["results"]["bindings"];
-      populations = [];
+    .then(response => response.json())
+    .then(data => {
+      populationsList = data["results"]["bindings"]
+      populations = []
       for (item of populationsList) {
-        populations.push([item.population.value, item.populationYear.value]);
+        populations.push([item.population.value, item.populationYear.value])
       }
-    });
+    })
 }
 
 function deleteFeature(featureId, layer) {
-  const source = map.getSource(layer);
-  const data = source._data;
-  const i = data.features.findIndex((f) => f.id == featureId);
+  const source = map.getSource(layer)
+  const data = source._data
+  const i = data.features.findIndex(f => f.id == featureId)
   if (i != -1) {
-    data.features.splice(i, 1);
-    source.setData(data);
+    data.features.splice(i, 1)
+    source.setData(data)
   }
 }
 
 function rightClick(e) {
   // move the box to the mouse and display it
-  rightClickMenuOpen = true;
-  e.preventDefault();
-  menu.classList.remove("invisible");
-  menu.style.display = "block";
-  let clientX, clientY;
+  rightClickMenuOpen = true
+  e.preventDefault()
+  menu.classList.remove('invisible')
+  menu.style.display = 'block';
+  let clientX, clientY
   if (e.originalEvent.touches) {
-    clientX = e.originalEvent.touches[0].clientX;
-    clientY = e.originalEvent.touches[0].clientY;
+    clientX = e.originalEvent.touches[0].clientX
+    clientY = e.originalEvent.touches[0].clientY
   } else {
-    clientX = e.originalEvent.clientX;
-    clientY = e.originalEvent.clientY;
+    clientX = e.originalEvent.clientX
+    clientY = e.originalEvent.clientY
   }
-  menu.style.left = clientX + "px";
-  menu.style.top = clientY + "px";
+  menu.style.left = clientX + 'px'
+  menu.style.top = clientY + 'px'
 
   // add marker functionality
-  const { lng: lng, lat: lat } = e.lngLat.wrap();
-  addMarkerEventListener(lng, lat);
+  const {lng: lng, lat: lat} = e.lngLat.wrap()
+  addMarkerEventListener(lng, lat)
 
-  // fetch features for that point
+
+  // fetch features for that point 
   let features = map.queryRenderedFeatures(e.point);
-
+  
   (async () => {
-    let id = features.map((f) => f.id)[0];
-    let properties = features.map((f) => f.properties);
-    let source = features.map((f) => f.source);
+    let id = features.map(f => f.id)[0]
+    let properties = features.map(f => f.properties)
+    let source = features.map(f => f.source)
     let wikidata, wikipedia;
-    if (id && source[0] != "osm_land" && source[0] != "custom-markers") {
-      [wikidata, wikipedia] = await getWikidataId(id);
-      console.log(wikidata, wikipedia);
+    if(id && source[0] != "osm_land" && source[0] != "custom-markers") {
+        [wikidata, wikipedia] = await getWikidataId(id)
+        console.log(wikidata, wikipedia)
     }
     // add them to the list
-    if (
-      properties.length > 0 &&
-      source != "osm_land" &&
-      source != "custom-markers"
-    ) {
-      let hr = document.createElement("hr");
-      rightClickList.appendChild(hr);
-      const includedProperties = ["name_en"];
+    if (properties.length > 0 && source != "osm_land" && source != "custom-markers") {
+      let hr = document.createElement('hr')
+      rightClickList.appendChild(hr)
+      const includedProperties = ["name_en"]
       for (property in properties[0]) {
-        if (properties[0].hasOwnProperty(property)) {
+        if(properties[0].hasOwnProperty(property)) {
           if (includedProperties.includes(property)) {
-            addToRightClick(properties[0][property]);
+            addToRightClick(properties[0][property])
           }
         }
       }
-      if (wikidata) {
-        addToRightClick(
-          "Wikidata",
-          true,
-          `https://www.wikidata.org/wiki/${wikidata}`,
-        );
+      if(wikidata) {
+        addToRightClick("Wikidata", true, `https://www.wikidata.org/wiki/${wikidata}`)
       }
-      if (wikipedia) {
-        addToRightClick(
-          "Wikipedia " + wikipedia,
-          true,
-          wikipediaTagToUrl(wikipedia),
-        );
+      if(wikipedia) {
+        addToRightClick("Wikipedia " + wikipedia, true, wikipediaTagToUrl(wikipedia))
       }
     }
 
     // delete user created markers functionality
     for (layer of features) {
       if (layer.source == "custom-markers") {
-        let deleteButton = document.createElement("li");
-        deleteButton.textContent = "Delete Marker";
-        rightClickList.appendChild(deleteButton);
-        deleteButton.addEventListener("click", () => {
-          let features = map.queryRenderedFeatures(e.point);
-          const id = features.map((f) => f.id);
-          deleteFeature(id[0], "custom-markers");
-          closeMenu();
-        });
+        let deleteButton = document.createElement('li')
+        deleteButton.textContent = "Delete Marker"
+        rightClickList.appendChild(deleteButton)
+        deleteButton.addEventListener('click', () => {
+          let features = map.queryRenderedFeatures(e.point)
+          const id = features.map(f => f.id)
+          deleteFeature(id[0], "custom-markers")
+          closeMenu()
+        })
       }
     }
-  })();
+  })();  
 }
 
-map.on("contextmenu", (e) => {
-  rightClick(e);
-});
+map.on('contextmenu', (e) => {
+  rightClick(e)
+})
 
 let longPressTimer;
-let suppressMouseClose = false;
+let suppressMouseClose = false
 
-map.on("touchstart", (e) => {
-  suppressMouseClose = true;
+map.on('touchstart', (e) => {
+  suppressMouseClose = true
   longPressTimer = setTimeout(() => {
-    rightClick(e);
-    console.log("click me");
-  }, 300);
-});
+    rightClick(e)
+    console.log("click me")
+  }, 300)
+})
 
-map.on("touchend", () => {
-  clearTimeout(longPressTimer);
-});
+map.on('touchend', () => {
+  clearTimeout(longPressTimer)
+})
 
-map.on("touchmove", () => {
-  clearTimeout(longPressTimer);
-});
+map.on('touchmove', () => {
+  clearTimeout(longPressTimer)
+})
 
 function addMarkerEventListener(lng, lat) {
-  const addMarkerButton = document.getElementById("add-marker");
-  addMarkerButton.addEventListener("mousedown", (e) => {
+  const addMarkerButton = document.getElementById('add-marker')
+  addMarkerButton.addEventListener('mousedown', (e) => {
     e.stopPropagation;
-  });
-  addMarkerButton.addEventListener("click", function handler() {
-    let textSelect = document.createElement("input");
-    textSelect.type = "text";
-    rightClickList.insertBefore(textSelect, rightClickList.firstChild);
-    addMarkerButton.remove();
-    textSelect.focus();
-    textSelect.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
+  })
+  addMarkerButton.addEventListener('click', function handler() {
+    let textSelect = document.createElement('input')
+    textSelect.type = "text"
+    rightClickList.insertBefore(textSelect, rightClickList.firstChild) 
+    addMarkerButton.remove()
+    textSelect.focus()
+    textSelect.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
         if (textSelect.value) {
-          addMarker(textSelect.value, lng, lat);
+          addMarker(textSelect.value, lng, lat)
         }
-        closeMenu();
+        closeMenu()
       }
-    });
-  });
+    })
+  })
 }
 
-document.addEventListener("touchstart", (e) => {
+document.addEventListener('touchstart', (e) => {
   if (rightClickMenuOpen && !menu.contains(e.target)) {
-    closeMenu(e.target);
+    closeMenu(e.target)
   }
-});
+})
 
-document.addEventListener("mousedown", (e) => {
-  if (suppressMouseClose) {
-    suppressMouseClose = false;
-    return;
+document.addEventListener('mousedown', (e) => {
+  if(suppressMouseClose) {
+    suppressMouseClose = false
+    return
   }
-  closeMenu(e.target);
-});
+  closeMenu(e.target)
+})
 
-map.on("zoom", (e) => {
-  closeMenu();
-});
+map.on('zoom', (e) => {
+  closeMenu()
+})
+
